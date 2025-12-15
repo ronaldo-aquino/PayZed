@@ -1,6 +1,7 @@
 import { Address, keccak256, toHex } from "viem";
-import { INVOPAY_CONTRACT_ADDRESS } from "@/lib/constants";
+import { INVOPAY_CONTRACT_ADDRESS, INVOPAY_SUBSCRIPTION_CONTRACT_ADDRESS } from "@/lib/constants";
 import { INVOPAY_ABI } from "@/lib/contract-abi";
+import { INVOPAY_SUBSCRIPTION_ABI } from "@/lib/subscription-contract-abi";
 import { createPublicClient, http } from "viem";
 import { arcTestnet } from "@/lib/wagmi";
 
@@ -90,4 +91,32 @@ export function getContractAddress(): string {
     throw new Error("Contract address not configured");
   }
   return INVOPAY_CONTRACT_ADDRESS;
+}
+
+export async function getSubscription(subscriptionId: string) {
+  if (!INVOPAY_SUBSCRIPTION_CONTRACT_ADDRESS) {
+    throw new Error("Subscription contract address not configured");
+  }
+
+  const subscriptionIdBytes32 = uuidToBytes32(subscriptionId);
+
+  return await publicClient.readContract({
+    address: INVOPAY_SUBSCRIPTION_CONTRACT_ADDRESS as Address,
+    abi: INVOPAY_SUBSCRIPTION_ABI,
+    functionName: "getSubscription",
+    args: [subscriptionIdBytes32],
+  });
+}
+
+export async function getSubscriptionByBytes32(subscriptionIdBytes32: `0x${string}`) {
+  if (!INVOPAY_SUBSCRIPTION_CONTRACT_ADDRESS) {
+    throw new Error("Subscription contract address not configured");
+  }
+
+  return await publicClient.readContract({
+    address: INVOPAY_SUBSCRIPTION_CONTRACT_ADDRESS as Address,
+    abi: INVOPAY_SUBSCRIPTION_ABI,
+    functionName: "getSubscription",
+    args: [subscriptionIdBytes32],
+  });
 }

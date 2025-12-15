@@ -32,3 +32,21 @@ export type Invoice = {
   paid_at?: string;
   updated_at: string;
 };
+
+export type Subscription = {
+  id: string;
+  subscription_id_bytes32: string;
+  creator_wallet_address: string;
+  payer_wallet_address: string;
+  receiver_wallet_address: string;
+  amount: number;
+  currency: "USDC" | "EURC";
+  period_seconds: number;
+  next_payment_due: string;
+  paused_at?: string;
+  status: "pending" | "active" | "cancelled_by_creator" | "cancelled_by_payer" | "paused";
+  description?: string;
+  total_payments: number;
+  created_at: string;
+  updated_at: string;
+};
