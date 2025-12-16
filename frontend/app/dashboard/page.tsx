@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useAccount } from "wagmi";
 import { Plus, Loader2 } from "lucide-react";
 import { Navbar } from "@/components/navbar";
@@ -19,6 +20,7 @@ type TabType = "all" | "paid" | "pending" | "paidByMe";
 
 export default function DashboardPage() {
   const { address, isConnected } = useAccount();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabType>("all");
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const observerTarget = useRef<HTMLDivElement>(null);
@@ -40,6 +42,12 @@ export default function DashboardPage() {
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
   };
+
+  useEffect(() => {
+    if (!isConnected || !address) {
+      router.push("/login");
+    }
+  }, [isConnected, address, router]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -64,7 +72,14 @@ export default function DashboardPage() {
   }, [activeTab, hasMore, loadingMore, loading, loadMore]);
 
   if (!isConnected || !address) {
-    return null;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-muted/20">
+        <div className="text-center space-y-4">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <p className="text-muted-foreground">Redirecting to login...</p>
+        </div>
+      </div>
+    );
   }
 
   const currentInvoices =
