@@ -48,6 +48,7 @@ export default function CreateInvoicePage() {
     handleApprove,
     isApproving,
     isApprovalConfirming,
+    refetchAllowance,
   } = useTokenAllowance(address, tokenAddress, feeAmountInWei);
 
   const { balance } = useTokenBalance(address, tokenAddress);
@@ -135,6 +136,7 @@ export default function CreateInvoicePage() {
                       isApproving={isApproving}
                       isApprovalConfirming={isApprovalConfirming}
                       onApprove={handleApprove}
+                      refetchAllowance={refetchAllowance}
                     />
                   )}
 

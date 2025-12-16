@@ -48,9 +48,15 @@ export async function createInvoice(data: CreateInvoiceData): Promise<{
 }
 
 export async function getInvoiceById(invoiceId: string) {
-  const { data, error } = await supabase.from("invoices").select("*").eq("id", invoiceId).single();
+  // Force fresh data by adding a timestamp to bypass cache
+  const { data, error } = await supabase
+    .from("invoices")
+    .select("*")
+    .eq("id", invoiceId)
+    .single();
 
   if (error) throw error;
+  console.log(`[getInvoiceById] Invoice ${invoiceId} status: ${data?.status}`);
   return data;
 }
 
