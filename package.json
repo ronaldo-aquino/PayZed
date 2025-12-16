@@ -22,6 +22,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
+    "@radix-ui/react-dialog": "^1.1.15",
     "@rainbow-me/rainbowkit": "^2.2.1",
     "@supabase/supabase-js": "^2.45.4",
     "@tanstack/react-query": "^5.62.0",
@@ -29,7 +30,7 @@
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "lucide-react": "^0.454.0",
-    "next": "16.0.7",
+    "next": "^16.0.10",
     "next-themes": "^0.4.4",
     "qrcode.react": "^3.1.0",
     "react": "^18.3.1",
