@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
+    "@radix-ui/react-dialog": "^1.1.15",
     "@rainbow-me/rainbowkit": "^2.2.1",
     "@supabase/supabase-js": "^2.45.4",
     "@tanstack/react-query": "^5.62.0",
