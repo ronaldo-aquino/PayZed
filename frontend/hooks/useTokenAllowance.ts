@@ -58,23 +58,29 @@ export function useTokenAllowance(
   }, [approvalReceipt, refetchAllowance]);
 
   useEffect(() => {
-    if (tokenAddress && address && INVOPAY_CONTRACT_ADDRESS && feeAmountInWei && isCorrectChain) {
-      refetchAllowance();
+    if (tokenAddress && address && INVOPAY_CONTRACT_ADDRESS && feeAmountInWei && isCorrectChain && !isLoadingAllowance) {
+      const timer = setTimeout(() => {
+        refetchAllowance();
+      }, 100);
+      return () => clearTimeout(timer);
     }
-  }, [tokenAddress, address, refetchAllowance, INVOPAY_CONTRACT_ADDRESS, feeAmountInWei, isCorrectChain]);
+  }, [tokenAddress]);
 
   const normalizedAllowance = allowance === null || allowance === undefined || allowance === "0x" 
     ? undefined 
     : (allowance as bigint | undefined);
 
+  const hasValidData = 
+    isCorrectChain && 
+    address && 
+    tokenAddress && 
+    feeAmountInWei &&
+    !isLoadingAllowance &&
+    !allowanceError &&
+    isAllowanceSuccess;
+
   const needsApprovalCheck: boolean = 
-    !isCorrectChain || 
-    !address || 
-    !tokenAddress || 
-    !feeAmountInWei ||
-    isLoadingAllowance ||
-    !!allowanceError ||
-    !isAllowanceSuccess ||
+    !hasValidData ||
     normalizedAllowance === undefined ||
     normalizedAllowance === null ||
     typeof normalizedAllowance !== "bigint" ||

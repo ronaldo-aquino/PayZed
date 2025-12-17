@@ -55,7 +55,9 @@ export function FeeDisplay({
     !needsApproval &&
     hasValidAllowance &&
     hasValidFeeAmount &&
-    allowanceBigInt >= feeAmountInWei;
+    allowanceBigInt >= feeAmountInWei &&
+    allowance !== undefined &&
+    allowance !== null;
 
   return (
     <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 border-2 border-blue-200 dark:border-blue-800 rounded-xl p-5 space-y-4">

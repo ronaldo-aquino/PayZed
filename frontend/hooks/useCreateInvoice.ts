@@ -194,6 +194,10 @@ export function useCreateInvoice() {
   useEffect(() => {
     if (createTxHash) {
       setError(null);
+      if (!(window as any).__pendingInvoiceData) {
+        setError("Invoice data not found. Please try creating the invoice again.");
+        setIsCreatingOnChain(false);
+      }
     }
   }, [createTxHash]);
 
@@ -226,11 +230,11 @@ export function useCreateInvoice() {
         return;
       }
 
-      if (receipt.to?.toLowerCase() !== INVOPAY_CONTRACT_ADDRESS?.toLowerCase()) {
+      if (!receipt.to || receipt.to?.toLowerCase() !== INVOPAY_CONTRACT_ADDRESS?.toLowerCase()) {
         setIsCreatingOnChain(false);
         delete (window as any).__pendingInvoiceData;
         setError(
-          "Transaction is not a createInvoice call. This appears to be a token approval transaction. The invoice was NOT created on-chain. Please check the block explorer."
+          "Transaction is not a createInvoice call. This appears to be a token approval transaction. The invoice was NOT created on-chain. Please approve the token first, then create the invoice."
         );
         return;
       }
