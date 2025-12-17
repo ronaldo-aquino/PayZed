@@ -58,11 +58,17 @@ export function useTokenAllowance(
     ? undefined 
     : (allowance as bigint | undefined);
 
-  const needsApprovalCheck = allowanceError 
-    ? true 
-    : feeAmountInWei
-      ? needsApproval(normalizedAllowance, feeAmountInWei)
-    : true;
+  const needsApprovalCheck = 
+    !isCorrectChain || 
+    !address || 
+    !tokenAddress || 
+    !feeAmountInWei ||
+    isLoadingAllowance ||
+    allowanceError ||
+    !isAllowanceSuccess ||
+    !normalizedAllowance ||
+    typeof normalizedAllowance !== "bigint" ||
+    needsApproval(normalizedAllowance, feeAmountInWei);
 
   const handleApprove = () => {
     if (!tokenAddress || !feeAmountInWei || !INVOPAY_CONTRACT_ADDRESS) return;

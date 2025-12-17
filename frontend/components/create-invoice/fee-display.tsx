@@ -42,6 +42,8 @@ export function FeeDisplay({
     isAllowanceSuccess &&
     !needsApproval &&
     allowanceBigInt !== undefined &&
+    allowanceBigInt !== null &&
+    typeof allowanceBigInt === "bigint" &&
     feeAmountInWei !== undefined &&
     feeAmountInWei !== null &&
     typeof feeAmountInWei === "bigint" &&
