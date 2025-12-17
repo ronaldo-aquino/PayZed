@@ -228,7 +228,6 @@ export async function burnUSDC(
       // If fee API fails, use a conservative estimate: 0.01% (1 bps) with 50% buffer
       // For 2 USDC (2 * 1e6): (2000000 * 1 * 150) / 10000 = 30000 (0.03 USDC)
       maxFee = (amountWei * BigInt(150)) / BigInt(10000);
-      console.log(`[CCTP] Using default fee estimate: ${maxFee}`);
     }
   } catch (error) {
     // If fee API fails, use a conservative estimate: 0.01% (1 bps) with 50% buffer
@@ -435,7 +434,6 @@ async function getMessageFromCircleAPI(
           // Circle's API can take several minutes to index transactions
           if (attempt < maxAttempts - 1) {
             // Wait longer and retry - Circle may need more time to index
-            console.log(`[CCTP] Message not found yet, waiting ${delayMs}ms before retry...`);
             continue;
           } else {
             throw new Error(`Message not found in Circle API after ${maxAttempts} attempts (${Math.round((maxAttempts * delayMs) / 1000 / 60)} minutes of waiting). This usually means: 1) The transaction is still being processed by Circle (can take 5-15 minutes), 2) The burn transaction did not create a valid CCTP message, or 3) There's an issue with Circle's API. Please verify the burn transaction on the block explorer and try the "Complete Mint & Pay" button in 10-15 minutes. Transaction: ${txHash}`);
@@ -484,7 +482,6 @@ async function getMessageFromCircleAPI(
         // Verify message is not empty (sometimes API returns '0x' while processing)
         const rawMessage = messageData.message;
         if (!rawMessage || rawMessage === '0x' || rawMessage.length < 10) {
-          console.log(`[CCTP] Message is empty or invalid (${rawMessage}), waiting...`);
           if (attempt < maxAttempts - 1) {
             continue; // Wait and retry
           } else {
@@ -635,10 +632,9 @@ export async function mintUSDC(
   let walletChainId: number;
   try {
     walletChainId = await walletClient.getChainId();
-    console.log(`[CCTP] Chain atual do walletClient: ${walletChainId}, necessária: ${destinationChainId}`);
     
     if (walletChainId !== destinationChainId) {
-      throw new Error(`ERRO CRÍTICO: Sua carteira está na chain ${walletChainId}, mas precisa estar na ${destinationChainId} (Arc Testnet) para fazer o mint. Por favor, troque MANUALMENTE sua carteira para Arc Testnet e depois clique em "Complete Mint & Pay" novamente.`);
+      throw new Error(`CRITICAL ERROR: Your wallet is on chain ${walletChainId}, but needs to be on ${destinationChainId} (Arc Testnet) to mint. Please manually switch your wallet to Arc Testnet and click "Complete Mint & Pay" again.`);
     }
   } catch (chainCheckError: any) {
     // If getChainId fails, it might be a different error - check the message
@@ -647,11 +643,6 @@ export async function mintUSDC(
     }
     // If it's a different error, log it but continue - the writeContract will fail with a clearer error
   }
-  
-  // IMPORTANT: Don't simulate - just try the transaction directly
-  // Simulation is failing and causing confusion. The transaction will revert if there's a problem
-  // and we'll catch it in the receipt check below
-  console.log(`[CCTP] Enviando transação de mint diretamente (sem simulação para evitar erros)...`);
   
   let mintHash: `0x${string}`;
   try {
@@ -665,17 +656,9 @@ export async function mintUSDC(
     });
   } catch (error: any) {
     const errorMsg = error?.message || error?.shortMessage || error?.cause?.message || "Unknown error";
-    console.error(`[CCTP] Falha ao enviar transação de mint:`, error);
-    console.error(`[CCTP] Detalhes do erro:`, {
-      message: error?.message,
-      shortMessage: error?.shortMessage,
-      cause: error?.cause,
-      stack: error?.stack,
-    });
     
-    // Check if it's a chain mismatch error - provide very clear instructions
     if (errorMsg.includes("chain") || errorMsg.includes("ChainMismatch") || errorMsg.includes("does not match") || errorMsg.includes("current chain") || errorMsg.includes("target chain")) {
-      throw new Error(`ERRO DE CHAIN: Sua carteira precisa estar na Arc Testnet (chain ID ${destinationChainId}) para fazer o mint. O erro indica que há uma incompatibilidade de chain. Por favor: 1) Troque MANUALMENTE sua carteira para Arc Testnet, 2) Aguarde a confirmação da troca, 3) Clique em "Complete Mint & Pay" novamente.`);
+      throw new Error(`CHAIN ERROR: Your wallet must be on Arc Testnet (chain ID ${destinationChainId}) to mint. The error indicates a chain mismatch. Please: 1) Manually switch your wallet to Arc Testnet, 2) Wait for the switch confirmation, 3) Click "Complete Mint & Pay" again.`);
     }
     
     throw new Error(`Failed to send mint transaction: ${errorMsg}. Please verify you are on Arc Testnet (chain ID ${destinationChainId}) and have sufficient gas.`);
@@ -694,10 +677,9 @@ export async function mintUSDC(
 
   if (receipt.status === "reverted") {
     // Try to get revert reason by simulating the call
-    let revertReason = "Motivo desconhecido";
+    let revertReason = "Unknown reason";
     try {
-      console.log(`[CCTP] Tentando obter motivo do revert...`);
-      const callResult = await publicClient.call({
+      await publicClient.call({
         to: destConfig.messageTransmitter,
         data: encodeFunctionData({
           abi: MESSAGE_TRANSMITTER_ABI,
@@ -706,31 +688,26 @@ export async function mintUSDC(
         }),
         account: walletClient.account,
       });
-      
     } catch (callError: any) {
-      console.error(`[CCTP] Erro ao simular call:`, callError);
       const errorMsg = callError?.message || callError?.shortMessage || "";
       
       // Check for common revert reasons
       if (errorMsg.includes("InvalidAttestation") || errorMsg.includes("invalid attestation")) {
-        revertReason = "Attestation inválida - verifique se está correta e não expirou";
+        revertReason = "Invalid attestation - verify it is correct and not expired";
       } else if (errorMsg.includes("MessageAlreadyExecuted") || errorMsg.includes("already executed")) {
-        revertReason = "Esta mensagem já foi usada - o mint já foi feito anteriormente";
+        revertReason = "This message was already used - mint was already done previously";
       } else if (errorMsg.includes("InvalidMessage") || errorMsg.includes("invalid message")) {
-        revertReason = "Mensagem inválida - verifique se o burn foi feito corretamente";
+        revertReason = "Invalid message - verify the burn was done correctly";
       } else if (errorMsg.includes("Pausable: paused")) {
-        revertReason = "O contrato está pausado - tente novamente mais tarde";
+        revertReason = "Contract is paused - try again later";
       } else if (errorMsg) {
         revertReason = errorMsg.substring(0, 100);
       }
     }
     
-    // Log receipt for debugging
-    
-    throw new Error(`Mint foi revertido. ${revertReason} Transação: ${mintHash}. Verifique no block explorer: ${destConfig.blockExplorer}/tx/${mintHash}`);
+    throw new Error(`Mint was reverted. ${revertReason} Transaction: ${mintHash}. Check on block explorer: ${destConfig.blockExplorer}/tx/${mintHash}`);
   }
 
-  console.log(`[CCTP] Mint successful: ${mintHash}`);
   return mintHash;
 }
 
