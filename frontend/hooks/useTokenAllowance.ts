@@ -66,8 +66,10 @@ export function useTokenAllowance(
     isLoadingAllowance ||
     !!allowanceError ||
     !isAllowanceSuccess ||
-    !normalizedAllowance ||
+    normalizedAllowance === undefined ||
+    normalizedAllowance === null ||
     typeof normalizedAllowance !== "bigint" ||
+    normalizedAllowance === 0n ||
     needsApproval(normalizedAllowance, feeAmountInWei);
 
   const handleApprove = () => {
