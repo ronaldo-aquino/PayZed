@@ -459,7 +459,6 @@ async function getMessageFromCircleAPI(
       
       if (data.messages && data.messages.length > 0) {
         const messageData = data.messages[0];
-        console.log(`[CCTP] Found message data:`, messageData);
         
         // Check message status - if it's still pending, wait
         const messageStatus = messageData.status;
