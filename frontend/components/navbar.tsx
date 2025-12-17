@@ -37,16 +37,18 @@ export function Navbar() {
             Invopay
           </Link>
           <div className="flex items-center gap-4">
+            {isConnected && (
             <Link href="/dashboard">
               <Button variant="ghost">Dashboard</Button>
             </Link>
+            )}
             {isOwner && (
               <Link href="/owner-dashboard">
                 <Button variant="ghost">Owner Dashboard</Button>
               </Link>
             )}
             <ThemeToggle />
-            <ConnectButton />
+            <ConnectButton chainStatus="none" />
           </div>
         </div>
       </div>

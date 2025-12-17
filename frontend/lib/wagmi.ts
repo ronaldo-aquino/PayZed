@@ -1,6 +1,7 @@
 import { getDefaultConfig } from "@rainbow-me/rainbowkit";
 import { http } from "wagmi";
 import { defineChain } from "viem";
+import { base, polygon, mainnet, sepolia } from "wagmi/chains";
 
 export const arcTestnet = defineChain({
   id: 5042002,
@@ -35,9 +36,13 @@ if (!process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID) {
 export const config = getDefaultConfig({
   appName: "Invopay",
   projectId,
-  chains: [arcTestnet],
+  chains: [arcTestnet, mainnet, base, polygon, sepolia],
   ssr: true,
   transports: {
     [arcTestnet.id]: http(),
+    [mainnet.id]: http(),
+    [base.id]: http(),
+    [polygon.id]: http(),
+    [sepolia.id]: http(),
   },
 });

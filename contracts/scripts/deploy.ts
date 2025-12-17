@@ -21,12 +21,23 @@ async function main() {
     throw new Error("Insufficient balance for deployment");
   }
 
+  console.log("\nDeploying InvopayFees contract...");
+  const InvopayFees = await ethers.getContractFactory("InvopayFees");
+  const invopayFees = await InvopayFees.deploy();
+  await invopayFees.waitForDeployment();
+  const feesContractAddress = await invopayFees.getAddress();
+  console.log("InvopayFees deployed at:", feesContractAddress);
+
+  console.log("\nDeploying Invopay contract...");
   const Invopay = await ethers.getContractFactory("Invopay");
-
-  console.log("\nDeploying contract...");
-  const invopay = await Invopay.deploy();
-
+  const invopay = await Invopay.deploy(feesContractAddress);
   await invopay.waitForDeployment();
+
+  console.log("\nConfiguring Invopay as allowed source in InvopayFees...");
+  const invopayAddress = await invopay.getAddress();
+  const setSourceTx = await invopayFees.setAllowedSource(invopayAddress, true);
+  await setSourceTx.wait();
+  console.log("Invopay configured as allowed source");
 
   const contractAddress = await invopay.getAddress();
   const deploymentTx = invopay.deploymentTransaction();
@@ -45,6 +56,7 @@ async function main() {
 
   const contractInfo = {
     address: contractAddress,
+    feesContractAddress: feesContractAddress,
     network: network.name,
     chainId: network.config.chainId,
     deployedAt: new Date().toISOString(),
@@ -81,9 +93,17 @@ async function main() {
 
     try {
       console.log("Verifying contract on ArcScan...");
+      console.log("Verifying InvopayFees contract...");
+      await hre.run("verify:verify", {
+        address: feesContractAddress,
+        constructorArguments: [],
+      });
+      console.log("InvopayFees verified!");
+
+      console.log("Verifying Invopay contract...");
       await hre.run("verify:verify", {
         address: contractAddress,
-        constructorArguments: [],
+        constructorArguments: [feesContractAddress],
       });
       console.log("Contract verified!");
     } catch (error: any) {

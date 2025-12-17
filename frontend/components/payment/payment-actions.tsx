@@ -2,6 +2,7 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { Button } from "@/components/ui/button";
 import { INVOPAY_CONTRACT_ADDRESS } from "@/lib/constants";
 import type { Invoice } from "@backend/lib/supabase";
+import { ArrowRightLeft } from "lucide-react";
 
 interface PaymentActionsProps {
   invoice: Invoice;
@@ -20,6 +21,7 @@ interface PaymentActionsProps {
   paymentReceiptError: any;
   onApprove: () => void;
   onPay: () => void;
+  onOpenCCTPModal?: () => void;
 }
 
 export function PaymentActions({
@@ -39,6 +41,7 @@ export function PaymentActions({
   paymentReceiptError,
   onApprove,
   onPay,
+  onOpenCCTPModal,
 }: PaymentActionsProps) {
   if (!INVOPAY_CONTRACT_ADDRESS) {
     return (
@@ -87,6 +90,20 @@ export function PaymentActions({
             ? "Waiting for on-chain registration..."
             : `Pay ${invoice.amount} ${invoice.currency}`}
       </Button>
+      
+      {invoice.currency === "USDC" && onOpenCCTPModal && (
+        <Button
+          onClick={onOpenCCTPModal}
+          disabled={needsApproval || !onChainInvoice}
+          variant="outline"
+          className="w-full h-12 text-base font-semibold border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/20"
+          size="lg"
+        >
+          <ArrowRightLeft className="mr-2 h-5 w-5" />
+          Pay with USDC from Another Chain
+        </Button>
+      )}
+      
       {onChainInvoice && (
         <div className="pt-3">
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide text-center mb-1">

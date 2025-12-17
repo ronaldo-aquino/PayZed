@@ -13,6 +13,7 @@ interface FeeDisplayProps {
   isApproving: boolean;
   isApprovalConfirming: boolean;
   onApprove: () => void;
+  refetchAllowance?: () => void;
 }
 
 export function FeeDisplay({
@@ -28,6 +29,7 @@ export function FeeDisplay({
   isApproving,
   isApprovalConfirming,
   onApprove,
+  refetchAllowance,
 }: FeeDisplayProps) {
   const allowanceBigInt =
     allowance !== undefined && allowance !== null && typeof allowance === "bigint"
@@ -58,28 +60,6 @@ export function FeeDisplay({
         </p>
       </div>
 
-      {!tokenAddress && (
-        <div className="pt-3 border-t border-blue-200 dark:border-blue-800 space-y-3">
-          <div className="flex items-start gap-2">
-            <div className="w-5 h-5 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center flex-shrink-0 mt-0.5">
-              <span className="text-yellow-600 dark:text-yellow-400 text-xs font-bold">!</span>
-            </div>
-            <p className="text-sm text-yellow-800 dark:text-yellow-200">
-              You need to approve the contract to spend tokens for the fee.
-            </p>
-          </div>
-          <Button
-            type="button"
-            onClick={onApprove}
-            disabled={isApproving || isApprovalConfirming || !tokenAddress}
-            className="w-full"
-            variant="outline"
-            size="lg"
-          >
-            {isApproving || isApprovalConfirming ? "Approving..." : `Approve ${currency} for Fee`}
-          </Button>
-        </div>
-      )}
 
       {isLoadingAllowance && (
         <div className="flex items-center gap-2 pt-3 border-t border-blue-200 dark:border-blue-800">
@@ -92,7 +72,7 @@ export function FeeDisplay({
         </div>
       )}
 
-      {!isLoadingAllowance && needsApproval && (
+      {!isLoadingAllowance && needsApproval && !allowanceError && (
         <div className="pt-3 border-t border-blue-200 dark:border-blue-800 space-y-3">
           <div className="flex items-start gap-2">
             <div className="w-5 h-5 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -116,13 +96,25 @@ export function FeeDisplay({
       )}
 
       {!isLoadingAllowance && allowanceError && (
-        <div className="flex items-center gap-2 pt-3 border-t border-blue-200 dark:border-blue-800">
-          <div className="w-5 h-5 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-            <span className="text-red-600 dark:text-red-400 text-xs">!</span>
+        <div className="pt-3 border-t border-blue-200 dark:border-blue-800 space-y-3">
+          <div className="flex items-start gap-2">
+            <div className="w-5 h-5 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <span className="text-yellow-600 dark:text-yellow-400 text-xs font-bold">!</span>
+            </div>
+            <p className="text-sm text-yellow-800 dark:text-yellow-200">
+              You need to approve the contract to spend tokens for the fee.
+            </p>
           </div>
-          <p className="text-sm font-medium text-red-700 dark:text-red-300">
-            Error checking approval. Please try again.
-          </p>
+          <Button
+            type="button"
+            onClick={onApprove}
+            disabled={isApproving || isApprovalConfirming}
+            className="w-full"
+            variant="outline"
+            size="lg"
+          >
+            {isApproving || isApprovalConfirming ? "Approving..." : `Approve ${currency} for Fee`}
+          </Button>
         </div>
       )}
 

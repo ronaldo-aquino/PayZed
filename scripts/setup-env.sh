@@ -32,3 +32,6 @@ echo ""
 echo "✓ Environment setup complete!"
 echo "   Next.js will now be able to read variables from .env.local"
 
+
+
+

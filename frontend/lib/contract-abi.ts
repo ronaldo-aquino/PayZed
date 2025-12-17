@@ -35,6 +35,7 @@ export const INVOPAY_ABI = [
           { internalType: "uint256", name: "createdAt", type: "uint256" },
           { internalType: "uint256", name: "paidAt", type: "uint256" },
           { internalType: "uint256", name: "expiresAt", type: "uint256" },
+          { internalType: "uint256", name: "feePaid", type: "uint256" },
           { internalType: "string", name: "paymentLink", type: "string" },
           { internalType: "string", name: "description", type: "string" },
         ],
@@ -103,10 +104,37 @@ export const INVOPAY_ABI = [
     type: "function",
   },
   {
+    inputs: [{ internalType: "address", name: "_feesContract", type: "address" }],
+    name: "setFeesContract",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "feesContract",
+    outputs: [{ internalType: "contract InvopayFees", name: "", type: "address" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [{ internalType: "address", name: "tokenAddress", type: "address" }],
     name: "getAccumulatedFees",
     outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
     stateMutability: "view",
+    type: "function",
+  },
+] as const;
+
+export const INVOPAY_FEES_ABI = [
+  {
+    inputs: [
+      { internalType: "address", name: "tokenAddress", type: "address" },
+      { internalType: "uint256", name: "feeAmount", type: "uint256" },
+    ],
+    name: "collectFee",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function",
   },
   {
@@ -118,6 +146,30 @@ export const INVOPAY_ABI = [
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
+  },
+  {
+    inputs: [{ internalType: "address", name: "tokenAddress", type: "address" }],
+    name: "getAccumulatedFees",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [{ internalType: "address", name: "tokenAddress", type: "address" }],
+    name: "getTotalWithdrawn",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, internalType: "address", name: "sourceContract", type: "address" },
+      { indexed: true, internalType: "address", name: "tokenAddress", type: "address" },
+      { indexed: false, internalType: "uint256", name: "feeAmount", type: "uint256" },
+    ],
+    name: "FeeCollected",
+    type: "event",
   },
   {
     anonymous: false,

@@ -6,7 +6,7 @@ import { useAccount } from "wagmi";
 import { Navbar } from "@/components/navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FeeCard } from "@/components/owner-dashboard/fee-card";
-import { INVOPAY_CONTRACT_ADDRESS } from "@/lib/constants";
+import { INVOPAY_CONTRACT_ADDRESS, INVOPAY_FEES_CONTRACT_ADDRESS } from "@/lib/constants";
 import { useOwnerDashboard } from "@/hooks/useOwnerDashboard";
 
 export default function OwnerDashboardPage() {
@@ -132,10 +132,18 @@ export default function OwnerDashboardPage() {
                 </div>
                 <div className="space-y-2">
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                    Contract Address
+                    Invoice Contract Address
                   </p>
                   <code className="block text-xs bg-muted px-3 py-2 rounded-md border font-mono break-all">
                     {INVOPAY_CONTRACT_ADDRESS}
+                  </code>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                    Fees Contract Address
+                  </p>
+                  <code className="block text-xs bg-muted px-3 py-2 rounded-md border font-mono break-all">
+                    {INVOPAY_FEES_CONTRACT_ADDRESS || "Not configured"}
                   </code>
                 </div>
                 <div className="space-y-2">

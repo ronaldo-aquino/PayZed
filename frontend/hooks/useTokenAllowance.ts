@@ -1,6 +1,6 @@
 import { useEffect } from "react";
-import { useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
-import { INVOPAY_CONTRACT_ADDRESS } from "@/lib/constants";
+import { useReadContract, useWriteContract, useWaitForTransactionReceipt, useAccount } from "wagmi";
+import { INVOPAY_CONTRACT_ADDRESS, ARC_TESTNET_CHAIN_ID } from "@/lib/constants";
 import { getAllowanceArgs, needsApproval, getApproveArgs } from "@backend/lib/services/token.service";
 
 export function useTokenAllowance(
@@ -8,6 +8,7 @@ export function useTokenAllowance(
   tokenAddress: string | undefined,
   feeAmountInWei: bigint | undefined
 ) {
+  const { chain } = useAccount();
   const allowanceArgs =
     address && INVOPAY_CONTRACT_ADDRESS && tokenAddress
       ? getAllowanceArgs({
@@ -15,6 +16,8 @@ export function useTokenAllowance(
           owner: address as `0x${string}`,
         })
       : undefined;
+
+  const isCorrectChain = chain?.id === ARC_TESTNET_CHAIN_ID;
 
   const {
     data: allowance,
@@ -25,8 +28,9 @@ export function useTokenAllowance(
   } = useReadContract({
     ...allowanceArgs,
     query: {
-      enabled: !!address && !!INVOPAY_CONTRACT_ADDRESS && !!tokenAddress && !!feeAmountInWei,
-      retry: 2,
+      enabled: !!address && !!INVOPAY_CONTRACT_ADDRESS && !!tokenAddress && !!feeAmountInWei && isCorrectChain,
+      retry: 1,
+      retryDelay: 1000,
       staleTime: 0,
       gcTime: 0,
     },
@@ -43,13 +47,21 @@ export function useTokenAllowance(
   });
 
   useEffect(() => {
-    if (approvalReceipt) {
+    if (approvalReceipt && approvalReceipt.status === "success") {
+      setTimeout(() => {
       refetchAllowance();
+      }, 1000);
     }
   }, [approvalReceipt, refetchAllowance]);
 
-  const needsApprovalCheck = feeAmountInWei
-    ? needsApproval(allowance as bigint | undefined, feeAmountInWei)
+  const normalizedAllowance = allowance === null || allowance === undefined || allowance === "0x" 
+    ? undefined 
+    : (allowance as bigint | undefined);
+
+  const needsApprovalCheck = allowanceError 
+    ? true 
+    : feeAmountInWei
+      ? needsApproval(normalizedAllowance, feeAmountInWei)
     : true;
 
   const handleApprove = () => {
@@ -64,7 +76,7 @@ export function useTokenAllowance(
   };
 
   return {
-    allowance,
+    allowance: normalizedAllowance,
     needsApproval: needsApprovalCheck,
     isLoadingAllowance,
     allowanceError,

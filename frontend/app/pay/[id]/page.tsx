@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { PaymentDetails } from "@/components/payment/payment-details";
 import { QRCodeSection } from "@/components/payment/qr-code-section";
 import { PaymentActions } from "@/components/payment/payment-actions";
+import { CCTPPaymentModal } from "@/components/payment/cctp-payment-modal";
 import { useInvoice } from "@/hooks/useInvoice";
 import { usePayInvoice } from "@/hooks/usePayInvoice";
 
@@ -17,6 +18,7 @@ export default function PaymentPage() {
   const invoiceId = params.id as string;
   const { isConnected } = useAccount();
   const [copied, setCopied] = useState(false);
+  const [cctpModalOpen, setCctpModalOpen] = useState(false);
 
   const { invoice, loading, refetch } = useInvoice(invoiceId);
 
@@ -116,6 +118,10 @@ export default function PaymentPage() {
               {invoice.status === "pending" && (
                 <div className="border-t-2 border-border/60 pt-8 space-y-5">
                   <h3 className="text-xl font-bold">Pay with Wallet</h3>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="text-sm font-semibold mb-2 text-muted-foreground">Pay on Arc Testnet</h4>
                   <PaymentActions
                     invoice={invoice}
                     isConnected={isConnected}
@@ -133,7 +139,10 @@ export default function PaymentPage() {
                     paymentReceiptError={paymentReceiptError}
                     onApprove={handleApprove}
                     onPay={handlePayInvoice}
+                        onOpenCCTPModal={() => setCctpModalOpen(true)}
                   />
+                    </div>
+                  </div>
                 </div>
               )}
 
@@ -158,6 +167,21 @@ export default function PaymentPage() {
           </Card>
         </div>
       </main>
+
+      {/* CCTP Payment Modal */}
+      {invoice.currency === "USDC" && (
+        <CCTPPaymentModal
+          invoice={invoice}
+          invoiceIdBytes32={invoiceIdBytes32}
+          open={cctpModalOpen}
+          onOpenChange={setCctpModalOpen}
+          onPaymentSuccess={() => {
+            refetch();
+            setTimeout(() => refetch(), 1000);
+            setTimeout(() => refetch(), 3000);
+          }}
+        />
+      )}
     </div>
   );
 }

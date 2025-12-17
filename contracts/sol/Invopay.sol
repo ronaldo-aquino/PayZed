@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Pausable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "./InvopayFees.sol";
 
 contract Invopay is ReentrancyGuard, Pausable, Ownable {
     using SafeERC20 for IERC20;
@@ -19,6 +20,7 @@ contract Invopay is ReentrancyGuard, Pausable, Ownable {
         uint256 createdAt;
         uint256 paidAt;
         uint256 expiresAt;
+        uint256 feePaid;
         string paymentLink;
         string description;
     }
@@ -33,9 +35,9 @@ contract Invopay is ReentrancyGuard, Pausable, Ownable {
     uint256 public constant FEE_RATE = 5;
     uint256 public constant FEE_DENOMINATOR = 10000;
 
+    InvopayFees public feesContract;
     mapping(bytes32 => Invoice) public invoices;
     mapping(address => bytes32[]) public creatorInvoices;
-    mapping(address => uint256) public accumulatedFees;
     mapping(address => bool) public allowedTokens;
 
     event InvoiceCreated(
@@ -68,13 +70,8 @@ contract Invopay is ReentrancyGuard, Pausable, Ownable {
         uint256 feeAmount
     );
 
-    event FeesWithdrawn(
-        address indexed tokenAddress,
-        uint256 amount,
-        address indexed recipient
-    );
-
     event TokenWhitelistUpdated(address indexed tokenAddress, bool allowed);
+    event FeesContractUpdated(address indexed feesContract);
 
     modifier onlyCreator(bytes32 invoiceId) {
         require(
@@ -97,7 +94,10 @@ contract Invopay is ReentrancyGuard, Pausable, Ownable {
         _;
     }
 
-    constructor() Ownable(msg.sender) {}
+    constructor(address _feesContract) Ownable(msg.sender) {
+        require(_feesContract != address(0), "Invalid fees contract address");
+        feesContract = InvopayFees(_feesContract);
+    }
 
     function createInvoice(
         bytes32 invoiceId,
@@ -134,7 +134,8 @@ contract Invopay is ReentrancyGuard, Pausable, Ownable {
             require(balance >= fee, "Insufficient token balance for fee");
 
             token.safeTransferFrom(msg.sender, address(this), fee);
-            accumulatedFees[tokenAddress] += fee;
+            token.safeTransfer(address(feesContract), fee);
+            feesContract.collectFee(tokenAddress, fee);
 
             emit FeeCollected(invoiceId, tokenAddress, fee);
         }
@@ -148,6 +149,7 @@ contract Invopay is ReentrancyGuard, Pausable, Ownable {
             createdAt: block.timestamp,
             paidAt: 0,
             expiresAt: expiresAt,
+            feePaid: fee,
             paymentLink: paymentLink,
             description: description
         });
@@ -190,6 +192,8 @@ contract Invopay is ReentrancyGuard, Pausable, Ownable {
         }
 
         IERC20 token = IERC20(invoice.tokenAddress);
+        uint256 allowance = token.allowance(msg.sender, address(this));
+        require(allowance >= invoice.amount, "Insufficient allowance");
         token.safeTransferFrom(msg.sender, invoice.receiver, invoice.amount);
 
         invoice.status = InvoiceStatus.Paid;
@@ -255,22 +259,10 @@ contract Invopay is ReentrancyGuard, Pausable, Ownable {
         emit InvoiceStatusUpdated(invoiceId, InvoiceStatus.Expired);
     }
 
-    function withdrawFees(address tokenAddress, address recipient)
-        external
-        nonReentrant
-        onlyOwner
-    {
-        require(recipient != address(0), "Invalid recipient address");
-
-        uint256 fees = accumulatedFees[tokenAddress];
-        require(fees > 0, "No fees to withdraw");
-
-        accumulatedFees[tokenAddress] = 0;
-
-        IERC20 token = IERC20(tokenAddress);
-        token.safeTransfer(recipient, fees);
-
-        emit FeesWithdrawn(tokenAddress, fees, recipient);
+    function setFeesContract(address _feesContract) external onlyOwner {
+        require(_feesContract != address(0), "Invalid fees contract address");
+        feesContract = InvopayFees(_feesContract);
+        emit FeesContractUpdated(_feesContract);
     }
 
     function getAccumulatedFees(address tokenAddress)
@@ -278,7 +270,7 @@ contract Invopay is ReentrancyGuard, Pausable, Ownable {
         view
         returns (uint256)
     {
-        return accumulatedFees[tokenAddress];
+        return feesContract.getAccumulatedFees(tokenAddress);
     }
 
     function setAllowedToken(address tokenAddress, bool allowed)

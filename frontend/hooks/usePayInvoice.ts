@@ -223,7 +223,6 @@ export function usePayInvoice(
             onPaymentSuccess();
           }
         } catch (updateError) {
-          console.error("Failed to update invoice payment:", updateError);
         }
       }
     },
@@ -320,7 +319,6 @@ export function usePayInvoice(
                   setTimeout(() => onPaymentSuccess(), 1000);
                 }
               } catch (fallbackError) {
-                console.error("Failed to update invoice (final fallback):", fallbackError);
               }
             } else {
               await new Promise((resolve) => setTimeout(resolve, 1000));
