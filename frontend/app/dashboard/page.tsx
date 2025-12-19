@@ -142,22 +142,41 @@ export default function DashboardPage() {
   }, [paidInvoicesData]);
 
   const recentInvoicesList = useMemo(() => {
-    return allInvoicesData
+    const seenIds = new Set<string>();
+    const list = allInvoicesData
       .map((inv) => {
-        const amount = Number(inv.amount || 0);
-        const date = new Date(inv.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+        if (seenIds.has(inv.id)) return null;
+        seenIds.add(inv.id);
+        
+        const amount = parseFloat(String(inv.amount || 0));
+        if (isNaN(amount) || amount < 0) return null;
+        const createdDate = new Date(inv.created_at);
+        if (isNaN(createdDate.getTime())) return null;
+        const date = createdDate.toLocaleDateString("en-US", { month: "short", day: "numeric" });
         return {
-          id: inv.id.substring(0, 8),
+          id: inv.id,
+          uniqueKey: inv.id,
           date,
+          dateTime: createdDate.getTime(),
           currency: inv.currency,
           amount: amount,
           status: inv.status,
         };
       })
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .filter((item): item is NonNullable<typeof item> => item !== null)
+      .sort((a, b) => b.dateTime - a.dateTime)
       .slice(0, 10)
       .reverse();
+    
+    return list;
   }, [allInvoicesData]);
+
+  const recentInvoicesMaxValue = useMemo(() => {
+    if (recentInvoicesList.length === 0) return 100;
+    const maxAmount = Math.max(...recentInvoicesList.map(inv => inv.amount));
+    return maxAmount > 0 ? maxAmount * 1.1 : 100;
+  }, [recentInvoicesList]);
+
 
   const receivedVsPending = useMemo(() => {
     const usdcReceived = paidInvoicesData
@@ -391,7 +410,10 @@ export default function DashboardPage() {
                         <BarChart data={invoicesComparison}>
                           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                           <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" />
-                          <YAxis stroke="hsl(var(--muted-foreground))" />
+                          <YAxis 
+                          stroke="hsl(var(--muted-foreground))"
+                          domain={[0, 'dataMax']}
+                        />
                           <Tooltip
                             cursor={{ fill: "rgba(255, 255, 255, 0.05)" }}
                             content={<CustomTooltip />}
@@ -415,7 +437,10 @@ export default function DashboardPage() {
                         <BarChart data={receivedVsPending}>
                           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                           <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" />
-                          <YAxis stroke="hsl(var(--muted-foreground))" />
+                          <YAxis 
+                          stroke="hsl(var(--muted-foreground))"
+                          domain={[0, 'dataMax']}
+                        />
                           <Tooltip
                             cursor={{ fill: "rgba(255, 255, 255, 0.05)" }}
                             content={(props: any) => {
@@ -474,7 +499,10 @@ export default function DashboardPage() {
                         <BarChart data={averageInvoiceValue}>
                           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                           <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" />
-                          <YAxis stroke="hsl(var(--muted-foreground))" />
+                          <YAxis 
+                          stroke="hsl(var(--muted-foreground))"
+                          domain={[0, 'dataMax']}
+                        />
                           <Tooltip
                             cursor={{ fill: "rgba(255, 255, 255, 0.05)" }}
                             content={(props: any) => {
@@ -523,16 +551,26 @@ export default function DashboardPage() {
                   </CardHeader>
                   <CardContent>
                     <ResponsiveContainer width="100%" height={300}>
-                      <BarChart data={recentInvoicesList}>
+                      <BarChart data={recentInvoicesList} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                         <XAxis
-                          dataKey="date"
+                          dataKey="uniqueKey"
+                          tickFormatter={(value) => {
+                            const item = recentInvoicesList.find(inv => inv.uniqueKey === value);
+                            return item ? item.date : value;
+                          }}
                           stroke="hsl(var(--muted-foreground))"
                           angle={-45}
                           textAnchor="end"
                           height={80}
                         />
-                        <YAxis stroke="hsl(var(--muted-foreground))" />
+                        <YAxis 
+                          stroke="hsl(var(--muted-foreground))"
+                          type="number"
+                          domain={[0, recentInvoicesMaxValue]}
+                          allowDecimals={true}
+                          tickFormatter={(value) => value.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                        />
                         <Tooltip
                           cursor={{ fill: "rgba(255, 255, 255, 0.05)" }}
                           content={(props: any) => {
