@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Navbar } from "@/components/navbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, Wallet, BarChart3, Shield, Zap, Globe, ArrowRight } from "lucide-react";
+import { FileText, Wallet, BarChart3, Shield, Zap, Globe, ArrowRight, ArrowLeftRight, Coins, Users } from "lucide-react";
 
 export default function Home() {
   return (
@@ -22,8 +22,7 @@ export default function Home() {
               </h1>
               
               <p className="text-xl sm:text-2xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-                A powerful invoice creation and management platform that enables seamless payments in
-                USDC and EURC stablecoins on the Arc Testnet.
+                A powerful invoice creation and management platform with cross-chain USDC transfers and smart stable swap capabilities on the Arc Testnet.
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-6">
@@ -43,7 +42,7 @@ export default function Home() {
           </section>
 
           <section className="py-16 sm:py-20 md:py-24">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
               <Card className="border-2 hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
                 <CardHeader className="pb-4">
                   <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
@@ -94,6 +93,62 @@ export default function Home() {
                   <p className="text-sm text-muted-foreground leading-relaxed">
                     View payment status, transaction history, and manage all your invoices in one
                     place with real-time updates.
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="border-2 hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+                <CardHeader className="pb-4">
+                  <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
+                    <ArrowLeftRight className="w-6 h-6 text-primary" />
+                  </div>
+                  <CardTitle className="text-xl mb-2">Bring USDC</CardTitle>
+                  <CardDescription className="text-base">
+                    Transfer USDC from other networks to Arc Testnet using CCTP
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    Seamlessly bridge USDC from Ethereum, Base, Polygon, or Sepolia to Arc Testnet using Circle's Cross-Chain Transfer Protocol.
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="border-2 border-muted/50 hover:border-primary/30 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 relative overflow-hidden">
+                <div className="absolute top-4 right-4">
+                  <span className="px-2 py-1 text-xs font-semibold rounded-full bg-primary/10 text-primary border border-primary/20">
+                    Coming Soon
+                  </span>
+                </div>
+                <CardHeader className="pb-4">
+                  <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4 opacity-60">
+                    <Coins className="w-6 h-6 text-primary" />
+                  </div>
+                  <CardTitle className="text-xl mb-2">Smart Stable Swap</CardTitle>
+                  <CardDescription className="text-base">
+                    Swap stablecoins with on-chain FX rates
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    Exchange between different stablecoins using real-time on-chain exchange rates. Powered by StableFX protocol.
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="border-2 hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+                <CardHeader className="pb-4">
+                  <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
+                    <Users className="w-6 h-6 text-primary" />
+                  </div>
+                  <CardTitle className="text-xl mb-2">Programmable Money Made Simple</CardTitle>
+                  <CardDescription className="text-base">
+                    Access programmable money without technical knowledge
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    We make programmable money accessible to everyone. No coding required - create invoices, receive payments, and manage your finances with an intuitive interface.
                   </p>
                 </CardContent>
               </Card>
