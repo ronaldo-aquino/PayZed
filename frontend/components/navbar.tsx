@@ -59,6 +59,9 @@ export function Navbar() {
                 <Link href="/invoices">
                   <Button variant="ghost">Invoices</Button>
                 </Link>
+                <Link href="/bring-usdc">
+                  <Button variant="ghost">Bring USDC</Button>
+                </Link>
                 <Link href="/dashboard">
                   <Button variant="ghost">Dashboard</Button>
                 </Link>
@@ -97,6 +100,11 @@ export function Navbar() {
                 <Link href="/invoices" onClick={closeMobileMenu}>
                   <Button variant="ghost" className="w-full justify-start">
                     Invoices
+                  </Button>
+                </Link>
+                <Link href="/bring-usdc" onClick={closeMobileMenu}>
+                  <Button variant="ghost" className="w-full justify-start">
+                    Bring USDC
                   </Button>
                 </Link>
                 <Link href="/dashboard" onClick={closeMobileMenu}>
