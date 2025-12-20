@@ -8,7 +8,7 @@ async function main() {
 
   const [deployer] = await ethers.getSigners();
 
-  console.log("Deploying Invopay contract...");
+  console.log("Deploying PayZed contract...");
   console.log("Network:", network.name);
   console.log("Deployer address:", deployer.address);
 
@@ -21,26 +21,26 @@ async function main() {
     throw new Error("Insufficient balance for deployment");
   }
 
-  console.log("\nDeploying InvopayFees contract...");
-  const InvopayFees = await ethers.getContractFactory("InvopayFees");
-  const invopayFees = await InvopayFees.deploy();
-  await invopayFees.waitForDeployment();
-  const feesContractAddress = await invopayFees.getAddress();
-  console.log("InvopayFees deployed at:", feesContractAddress);
+  console.log("\nDeploying PayZedFees contract...");
+  const PayZedFees = await ethers.getContractFactory("PayZedFees");
+  const payzedFees = await PayZedFees.deploy();
+  await payzedFees.waitForDeployment();
+  const feesContractAddress = await payzedFees.getAddress();
+  console.log("PayZedFees deployed at:", feesContractAddress);
 
-  console.log("\nDeploying Invopay contract...");
-  const Invopay = await ethers.getContractFactory("Invopay");
-  const invopay = await Invopay.deploy(feesContractAddress);
-  await invopay.waitForDeployment();
+  console.log("\nDeploying PayZed contract...");
+  const PayZed = await ethers.getContractFactory("PayZed");
+  const payzed = await PayZed.deploy(feesContractAddress);
+  await payzed.waitForDeployment();
 
-  console.log("\nConfiguring Invopay as allowed source in InvopayFees...");
-  const invopayAddress = await invopay.getAddress();
-  const setSourceTx = await invopayFees.setAllowedSource(invopayAddress, true);
+  console.log("\nConfiguring PayZed as allowed source in PayZedFees...");
+  const payzedAddress = await payzed.getAddress();
+  const setSourceTx = await payzedFees.setAllowedSource(payzedAddress, true);
   await setSourceTx.wait();
-  console.log("Invopay configured as allowed source");
+  console.log("PayZed configured as allowed source");
 
-  const contractAddress = await invopay.getAddress();
-  const deploymentTx = invopay.deploymentTransaction();
+  const contractAddress = await payzed.getAddress();
+  const deploymentTx = payzed.deploymentTransaction();
 
   if (!deploymentTx) {
     throw new Error("Contract deployment failed - no transaction found");
@@ -49,7 +49,7 @@ async function main() {
   const receipt = await deploymentTx.wait();
   const txHash = receipt?.hash || deploymentTx.hash;
 
-  console.log("\nInvopay deployed successfully!");
+  console.log("\nPayZed deployed successfully!");
   console.log("Contract address:", contractAddress);
   console.log("Transaction hash:", txHash);
   console.log("Block explorer:", `https://testnet.arcscan.app/address/${contractAddress}`);
@@ -74,11 +74,11 @@ async function main() {
 
     console.log("\nInitializing allowed tokens...");
     try {
-      const tx1 = await invopay.setAllowedToken(USDC_ADDRESS, true);
+      const tx1 = await payzed.setAllowedToken(USDC_ADDRESS, true);
       await tx1.wait();
       console.log("✅ USDC allowed");
 
-      const tx2 = await invopay.setAllowedToken(EURC_ADDRESS, true);
+      const tx2 = await payzed.setAllowedToken(EURC_ADDRESS, true);
       await tx2.wait();
       console.log("✅ EURC allowed");
     } catch (error: any) {
@@ -93,16 +93,18 @@ async function main() {
 
     try {
       console.log("Verifying contract on ArcScan...");
-      console.log("Verifying InvopayFees contract...");
+      console.log("Verifying PayZedFees contract...");
       await hre.run("verify:verify", {
         address: feesContractAddress,
+        contract: "contracts/sol/PayZedFees.sol:PayZedFees",
         constructorArguments: [],
       });
-      console.log("InvopayFees verified!");
+      console.log("PayZedFees verified!");
 
-      console.log("Verifying Invopay contract...");
+      console.log("Verifying PayZed contract...");
       await hre.run("verify:verify", {
         address: contractAddress,
+        contract: "contracts/sol/PayZed.sol:PayZed",
         constructorArguments: [feesContractAddress],
       });
       console.log("Contract verified!");

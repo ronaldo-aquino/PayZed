@@ -9,12 +9,12 @@ import {
 } from "wagmi";
 import { parseUnits, decodeEventLog, parseAbiItem } from "viem";
 import {
-  INVOPAY_CONTRACT_ADDRESS,
+  PAYZED_CONTRACT_ADDRESS,
   ERC20_ABI,
   USDC_CONTRACT_ADDRESS,
   EURC_CONTRACT_ADDRESS,
 } from "@/lib/constants";
-import { INVOPAY_ABI } from "@/lib/contract-abi";
+import { PAYZED_ABI } from "@/lib/contract-abi";
 import type { Invoice } from "@backend/lib/supabase";
 import { getTransactionReceipt, calculateGasCost } from "@backend/lib/services/contract.service";
 import { getPayInvoiceArgs } from "@backend/lib/services/invoice.service";
@@ -55,7 +55,7 @@ export function usePayInvoice(
   });
 
   const allowanceArgs =
-    address && INVOPAY_CONTRACT_ADDRESS && tokenAddress
+    address && PAYZED_CONTRACT_ADDRESS && tokenAddress
       ? getAllowanceArgs({
           tokenAddress: tokenAddress as `0x${string}`,
           owner: address as `0x${string}`,
@@ -65,7 +65,7 @@ export function usePayInvoice(
   const { data: allowance, refetch: refetchAllowance } = useReadContract({
     ...allowanceArgs,
     query: {
-      enabled: !!address && !!invoice && !!INVOPAY_CONTRACT_ADDRESS,
+      enabled: !!address && !!invoice && !!PAYZED_CONTRACT_ADDRESS,
     },
   });
 
@@ -82,12 +82,12 @@ export function usePayInvoice(
   });
 
   const { data: onChainInvoice, refetch: refetchOnChainInvoice } = useReadContract({
-    address: INVOPAY_CONTRACT_ADDRESS as `0x${string}`,
-    abi: INVOPAY_ABI,
+    address: PAYZED_CONTRACT_ADDRESS as `0x${string}`,
+    abi: PAYZED_ABI,
     functionName: "getInvoice",
     args: invoiceIdBytes32 ? [invoiceIdBytes32] : undefined,
     query: {
-      enabled: !!invoiceIdBytes32 && !!INVOPAY_CONTRACT_ADDRESS,
+      enabled: !!invoiceIdBytes32 && !!PAYZED_CONTRACT_ADDRESS,
     },
   });
 
@@ -134,7 +134,7 @@ export function usePayInvoice(
       !address ||
       !decimals ||
       typeof decimals !== "number" ||
-      !INVOPAY_CONTRACT_ADDRESS
+      !PAYZED_CONTRACT_ADDRESS
     )
       return;
 
@@ -148,7 +148,7 @@ export function usePayInvoice(
   };
 
   const handlePayInvoice = async () => {
-    if (!invoice || !invoiceIdBytes32 || !INVOPAY_CONTRACT_ADDRESS) {
+    if (!invoice || !invoiceIdBytes32 || !PAYZED_CONTRACT_ADDRESS) {
       alert("Contract not configured or invoice not found");
       return;
     }
@@ -183,7 +183,7 @@ export function usePayInvoice(
 
     const payArgs = getPayInvoiceArgs(invoice.id) as unknown as {
       address: `0x${string}`;
-      abi: typeof INVOPAY_ABI;
+      abi: typeof PAYZED_ABI;
       functionName: "payInvoice";
       args: readonly [`0x${string}`];
     };
@@ -191,8 +191,8 @@ export function usePayInvoice(
   };
 
   useWatchContractEvent({
-    address: INVOPAY_CONTRACT_ADDRESS as `0x${string}`,
-    abi: INVOPAY_ABI,
+    address: PAYZED_CONTRACT_ADDRESS as `0x${string}`,
+    abi: PAYZED_ABI,
     eventName: "InvoicePaid",
     onLogs: async (logs) => {
       const relevantLog = logs.find(
@@ -249,13 +249,13 @@ export function usePayInvoice(
         let payerFromEvent: string | null = null;
 
         try {
-          if (paymentReceipt.logs && invoiceIdBytes32 && INVOPAY_CONTRACT_ADDRESS) {
+          if (paymentReceipt.logs && invoiceIdBytes32 && PAYZED_CONTRACT_ADDRESS) {
             const invoicePaidEventAbi = parseAbiItem(
               "event InvoicePaid(bytes32 indexed invoiceId, address indexed payer, address indexed receiver, uint256 amount, address tokenAddress)"
             );
 
             for (const log of paymentReceipt.logs) {
-              if (log.address?.toLowerCase() !== INVOPAY_CONTRACT_ADDRESS.toLowerCase()) {
+              if (log.address?.toLowerCase() !== PAYZED_CONTRACT_ADDRESS.toLowerCase()) {
                 continue;
               }
 

@@ -1,4 +1,4 @@
-export const INVOPAY_ABI = [
+export const PAYZED_ABI = [
   {
     inputs: [
       { internalType: "bytes32", name: "invoiceId", type: "bytes32" },
@@ -39,7 +39,7 @@ export const INVOPAY_ABI = [
           { internalType: "string", name: "paymentLink", type: "string" },
           { internalType: "string", name: "description", type: "string" },
         ],
-        internalType: "struct Invopay.Invoice",
+        internalType: "struct PayZed.Invoice",
         name: "",
         type: "tuple",
       },
@@ -113,7 +113,7 @@ export const INVOPAY_ABI = [
   {
     inputs: [],
     name: "feesContract",
-    outputs: [{ internalType: "contract InvopayFees", name: "", type: "address" }],
+    outputs: [{ internalType: "contract PayZedFees", name: "", type: "address" }],
     stateMutability: "view",
     type: "function",
   },
@@ -126,7 +126,7 @@ export const INVOPAY_ABI = [
   },
 ] as const;
 
-export const INVOPAY_FEES_ABI = [
+export const PAYZED_FEES_ABI = [
   {
     inputs: [
       { internalType: "address", name: "tokenAddress", type: "address" },

@@ -32,7 +32,7 @@ if (!process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID) {
 }
 
 export const config = getDefaultConfig({
-  appName: "Invopay",
+  appName: "PayZed",
   projectId,
   chains: [arcTestnet, mainnet, base, polygon, sepolia],
   ssr: true,

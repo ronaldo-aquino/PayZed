@@ -12,7 +12,7 @@ import { FeeDisplay } from "@/components/create-invoice/fee-display";
 import { TransactionStatus } from "@/components/create-invoice/transaction-status";
 import { ErrorDisplay } from "@/components/create-invoice/error-display";
 import {
-  INVOPAY_CONTRACT_ADDRESS,
+  PAYZED_CONTRACT_ADDRESS,
   USDC_CONTRACT_ADDRESS,
   EURC_CONTRACT_ADDRESS,
 } from "@/lib/constants";
@@ -167,9 +167,9 @@ export default function CreateInvoicePage() {
                   createTxHash={createTxHash}
                 />
 
-                {!INVOPAY_CONTRACT_ADDRESS && (
+                {!PAYZED_CONTRACT_ADDRESS && (
                   <p className="text-sm text-destructive text-center">
-                    Contract address not configured. Please set NEXT_PUBLIC_INVOPAY_CONTRACT_ADDRESS
+                    Contract address not configured. Please set NEXT_PUBLIC_PAYZED_CONTRACT_ADDRESS
                   </p>
                 )}
               </form>

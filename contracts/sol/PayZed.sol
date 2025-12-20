@@ -6,9 +6,9 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Pausable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "./InvopayFees.sol";
+import "./PayZedFees.sol";
 
-contract Invopay is ReentrancyGuard, Pausable, Ownable {
+contract PayZed is ReentrancyGuard, Pausable, Ownable {
     using SafeERC20 for IERC20;
 
     struct Invoice {
@@ -35,7 +35,7 @@ contract Invopay is ReentrancyGuard, Pausable, Ownable {
     uint256 public constant FEE_RATE = 5;
     uint256 public constant FEE_DENOMINATOR = 10000;
 
-    InvopayFees public feesContract;
+    PayZedFees public feesContract;
     mapping(bytes32 => Invoice) public invoices;
     mapping(address => bytes32[]) public creatorInvoices;
     mapping(address => bool) public allowedTokens;
@@ -96,7 +96,7 @@ contract Invopay is ReentrancyGuard, Pausable, Ownable {
 
     constructor(address _feesContract) Ownable(msg.sender) {
         require(_feesContract != address(0), "Invalid fees contract address");
-        feesContract = InvopayFees(_feesContract);
+        feesContract = PayZedFees(_feesContract);
     }
 
     function createInvoice(
@@ -261,7 +261,7 @@ contract Invopay is ReentrancyGuard, Pausable, Ownable {
 
     function setFeesContract(address _feesContract) external onlyOwner {
         require(_feesContract != address(0), "Invalid fees contract address");
-        feesContract = InvopayFees(_feesContract);
+        feesContract = PayZedFees(_feesContract);
         emit FeesContractUpdated(_feesContract);
     }
 
@@ -289,3 +289,4 @@ contract Invopay is ReentrancyGuard, Pausable, Ownable {
         _unpause();
     }
 }
+

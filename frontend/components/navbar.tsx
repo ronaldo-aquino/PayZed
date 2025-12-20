@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useAccount, useReadContract } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { Button } from "./ui/button";
 import { ThemeToggle } from "./ui/theme-toggle";
-import { INVOPAY_CONTRACT_ADDRESS } from "@/lib/constants";
-import { INVOPAY_ABI } from "@/lib/contract-abi";
+import { PAYZED_CONTRACT_ADDRESS } from "@/lib/constants";
+import { PAYZED_ABI } from "@/lib/contract-abi";
 import { Menu, X } from "lucide-react";
 
 export function Navbar() {
@@ -16,11 +17,11 @@ export function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const { data: contractOwner } = useReadContract({
-    address: INVOPAY_CONTRACT_ADDRESS as `0x${string}`,
-    abi: INVOPAY_ABI,
+    address: PAYZED_CONTRACT_ADDRESS as `0x${string}`,
+    abi: PAYZED_ABI,
     functionName: "owner",
     query: {
-      enabled: !!INVOPAY_CONTRACT_ADDRESS && isConnected,
+      enabled: !!PAYZED_CONTRACT_ADDRESS && isConnected,
     },
   });
 
@@ -46,33 +47,41 @@ export function Navbar() {
   };
 
   return (
-    <nav className="border-b border-border/60 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <nav className="border-b border-white/10 shadow-sm" style={{ backgroundColor: '#020918' }}>
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex items-center justify-between">
-          <Link href="/invoices" className="text-2xl font-bold">
-            Invopay
+          <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity overflow-visible">
+            <Image
+              src="/logo-payzed.png"
+              alt="PayZed Logo"
+              width={120}
+              height={40}
+              className="h-10 w-auto max-h-10"
+              priority
+              unoptimized
+            />
           </Link>
           
           <div className="hidden md:flex items-center gap-4">
             {isConnected && (
               <>
                 <Link href="/invoices">
-                  <Button variant="ghost">Invoices</Button>
+                  <Button variant="ghost" className="text-white hover:text-white hover:bg-white/10">Invoices</Button>
                 </Link>
                 <Link href="/bring-usdc">
-                  <Button variant="ghost">Bring USDC</Button>
+                  <Button variant="ghost" className="text-white hover:text-white hover:bg-white/10">Bring USDC</Button>
                 </Link>
                 <Link href="/smart-stable-swap">
-                  <Button variant="ghost">Smart Stable Swap</Button>
+                  <Button variant="ghost" className="text-white hover:text-white hover:bg-white/10">Smart Stable Swap</Button>
                 </Link>
                 <Link href="/dashboard">
-                  <Button variant="ghost">Dashboard</Button>
+                  <Button variant="ghost" className="text-white hover:text-white hover:bg-white/10">Dashboard</Button>
                 </Link>
               </>
             )}
             {isConnected && isOwner && (
               <Link href="/owner-dashboard">
-                <Button variant="ghost">Owner Dashboard</Button>
+                <Button variant="ghost" className="text-white hover:text-white hover:bg-white/10">Owner Dashboard</Button>
               </Link>
             )}
             <ThemeToggle />
@@ -86,6 +95,7 @@ export function Navbar() {
               size="icon"
               onClick={toggleMobileMenu}
               aria-label="Toggle menu"
+              className="text-white hover:text-white hover:bg-white/10"
             >
               {isMobileMenuOpen ? (
                 <X className="h-6 w-6" />
@@ -97,26 +107,26 @@ export function Navbar() {
         </div>
 
         {isMobileMenuOpen && (
-          <div className="md:hidden mt-4 pb-4 border-t border-border/60 pt-4 space-y-3">
+          <div className="md:hidden mt-4 pb-4 border-t border-blue-600/20 pt-4 space-y-3">
             {isConnected && (
               <>
                 <Link href="/invoices" onClick={closeMobileMenu}>
-                  <Button variant="ghost" className="w-full justify-start">
+                  <Button variant="ghost" className="w-full justify-start text-white hover:text-white hover:bg-white/10">
                     Invoices
                   </Button>
                 </Link>
                 <Link href="/bring-usdc" onClick={closeMobileMenu}>
-                  <Button variant="ghost" className="w-full justify-start">
+                  <Button variant="ghost" className="w-full justify-start text-white hover:text-white hover:bg-white/10">
                     Bring USDC
                   </Button>
                 </Link>
                 <Link href="/smart-stable-swap" onClick={closeMobileMenu}>
-                  <Button variant="ghost" className="w-full justify-start">
+                  <Button variant="ghost" className="w-full justify-start text-white hover:text-white hover:bg-white/10">
                     Smart Stable Swap
                   </Button>
                 </Link>
                 <Link href="/dashboard" onClick={closeMobileMenu}>
-                  <Button variant="ghost" className="w-full justify-start">
+                  <Button variant="ghost" className="w-full justify-start text-white hover:text-white hover:bg-white/10">
                     Dashboard
                   </Button>
                 </Link>
@@ -124,7 +134,7 @@ export function Navbar() {
             )}
             {isConnected && isOwner && (
               <Link href="/owner-dashboard" onClick={closeMobileMenu}>
-                <Button variant="ghost" className="w-full justify-start">
+                <Button variant="ghost" className="w-full justify-start text-white hover:text-white hover:bg-white/10">
                   Owner Dashboard
                 </Button>
               </Link>

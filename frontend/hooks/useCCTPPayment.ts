@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { useAccount, useWalletClient, usePublicClient, useSwitchChain, useWriteContract, useWaitForTransactionReceipt, useWatchContractEvent, useReadContract } from "wagmi";
 import { burnUSDC, fetchAttestation, approveUSDCForCCTP } from "@/lib/services/cctp.service";
 import { CCTP_SUPPORTED_CHAINS } from "@/lib/cctp-constants";
-import { ARC_TESTNET_CHAIN_ID, INVOPAY_CONTRACT_ADDRESS, USDC_CONTRACT_ADDRESS, ERC20_ABI } from "@/lib/constants";
-import { INVOPAY_ABI } from "@/lib/contract-abi";
+import { ARC_TESTNET_CHAIN_ID, PAYZED_CONTRACT_ADDRESS, USDC_CONTRACT_ADDRESS, ERC20_ABI } from "@/lib/constants";
+import { PAYZED_ABI } from "@/lib/contract-abi";
 import { MESSAGE_TRANSMITTER_ABI } from "@/lib/services/cctp.service";
 import { getTransactionReceipt, calculateGasCost } from "@backend/lib/services/contract.service";
 import { updateInvoicePayment } from "@backend/lib/services/invoice-db.service";
@@ -123,7 +123,7 @@ export function useCCTPPayment(
         setMintTxHash(mintReceipt.transactionHash);
         
         setTimeout(async () => {
-          if (!invoiceIdBytes32 || !INVOPAY_CONTRACT_ADDRESS || !invoice || !address) {
+          if (!invoiceIdBytes32 || !PAYZED_CONTRACT_ADDRESS || !invoice || !address) {
             setError("Invoice ID or contract address not found. Cannot pay invoice.");
             setStep("error");
             return;
@@ -152,7 +152,7 @@ export function useCCTPPayment(
               address: USDC_CONTRACT_ADDRESS as `0x${string}`,
               abi: ERC20_ABI,
               functionName: "allowance",
-              args: [address as `0x${string}`, INVOPAY_CONTRACT_ADDRESS as `0x${string}`],
+              args: [address as `0x${string}`, PAYZED_CONTRACT_ADDRESS as `0x${string}`],
             }) as bigint;
 
             if (allowance < invoiceAmount) {
@@ -164,13 +164,13 @@ export function useCCTPPayment(
                 address: USDC_CONTRACT_ADDRESS as `0x${string}`,
                 abi: ERC20_ABI,
                 functionName: "approve",
-                args: [INVOPAY_CONTRACT_ADDRESS as `0x${string}`, maxApproval],
+                args: [PAYZED_CONTRACT_ADDRESS as `0x${string}`, maxApproval],
               });
             } else {
               setStep("paying");
               writePayInvoice({
-                address: INVOPAY_CONTRACT_ADDRESS as `0x${string}`,
-                abi: INVOPAY_ABI,
+                address: PAYZED_CONTRACT_ADDRESS as `0x${string}`,
+                abi: PAYZED_ABI,
                 functionName: "payInvoice",
                 args: [invoiceIdBytes32],
               });
@@ -191,7 +191,7 @@ export function useCCTPPayment(
     if (approveArcReceipt && step === "approving_arc") {
       if (approveArcReceipt.status === "success") {
         setTimeout(async () => {
-          if (!invoiceIdBytes32 || !INVOPAY_CONTRACT_ADDRESS) {
+          if (!invoiceIdBytes32 || !PAYZED_CONTRACT_ADDRESS) {
             setError("Invoice ID or contract address not found. Cannot pay invoice.");
             setStep("error");
             return;
@@ -207,8 +207,8 @@ export function useCCTPPayment(
 
           setStep("paying");
           writePayInvoice({
-            address: INVOPAY_CONTRACT_ADDRESS as `0x${string}`,
-            abi: INVOPAY_ABI,
+            address: PAYZED_CONTRACT_ADDRESS as `0x${string}`,
+            abi: PAYZED_ABI,
             functionName: "payInvoice",
             args: [invoiceIdBytes32],
           });
@@ -242,8 +242,8 @@ export function useCCTPPayment(
   }, [mintError, step, destinationChainId]);
 
   useWatchContractEvent({
-    address: INVOPAY_CONTRACT_ADDRESS as `0x${string}`,
-    abi: INVOPAY_ABI,
+    address: PAYZED_CONTRACT_ADDRESS as `0x${string}`,
+    abi: PAYZED_ABI,
     eventName: "InvoicePaid",
     onLogs: async (logs) => {
       const relevantLog = logs.find(
@@ -326,7 +326,7 @@ export function useCCTPPayment(
   }, [paymentReceipt, step, onPaymentSuccess, invoice, address, invoiceIdBytes32, publicClient]);
 
   const checkInvoiceStatusBeforePayment = async (): Promise<void> => {
-    if (!invoiceIdBytes32 || !INVOPAY_CONTRACT_ADDRESS) {
+    if (!invoiceIdBytes32 || !PAYZED_CONTRACT_ADDRESS) {
       throw new Error("Invoice ID or contract address not found.");
     }
     
@@ -345,8 +345,8 @@ export function useCCTPPayment(
       });
       
       const onChainInvoice = await arcPublicClient.readContract({
-        address: INVOPAY_CONTRACT_ADDRESS as `0x${string}`,
-        abi: INVOPAY_ABI,
+        address: PAYZED_CONTRACT_ADDRESS as `0x${string}`,
+        abi: PAYZED_ABI,
         functionName: "getInvoice",
         args: [invoiceIdBytes32],
       });
@@ -688,7 +688,7 @@ export function useCCTPPayment(
         });
         
         if (receipt.status === "success") {
-          if (!invoiceIdBytes32 || !INVOPAY_CONTRACT_ADDRESS || !invoice || !address) {
+          if (!invoiceIdBytes32 || !PAYZED_CONTRACT_ADDRESS || !invoice || !address) {
             setError("Invoice ID or contract address not found. Cannot pay invoice.");
             setStep("error");
             return;
@@ -708,7 +708,7 @@ export function useCCTPPayment(
               address: USDC_CONTRACT_ADDRESS as `0x${string}`,
               abi: ERC20_ABI,
               functionName: "allowance",
-              args: [address as `0x${string}`, INVOPAY_CONTRACT_ADDRESS as `0x${string}`],
+              args: [address as `0x${string}`, PAYZED_CONTRACT_ADDRESS as `0x${string}`],
             }) as bigint;
 
             if (allowance < invoiceAmount) {
@@ -720,13 +720,13 @@ export function useCCTPPayment(
                 address: USDC_CONTRACT_ADDRESS as `0x${string}`,
                 abi: ERC20_ABI,
                 functionName: "approve",
-                args: [INVOPAY_CONTRACT_ADDRESS as `0x${string}`, maxApproval],
+                args: [PAYZED_CONTRACT_ADDRESS as `0x${string}`, maxApproval],
               });
             } else {
               setStep("paying");
               writePayInvoice({
-                address: INVOPAY_CONTRACT_ADDRESS as `0x${string}`,
-                abi: INVOPAY_ABI,
+                address: PAYZED_CONTRACT_ADDRESS as `0x${string}`,
+                abi: PAYZED_ABI,
                 functionName: "payInvoice",
                 args: [invoiceIdBytes32],
               });
@@ -955,7 +955,7 @@ export function useCCTPPayment(
         });
         
         if (receipt.status === "success") {
-          if (!invoiceIdBytes32 || !INVOPAY_CONTRACT_ADDRESS || !invoice || !address) {
+          if (!invoiceIdBytes32 || !PAYZED_CONTRACT_ADDRESS || !invoice || !address) {
             setError("Invoice ID or contract address not found. Cannot pay invoice.");
             setStep("error");
             return;
@@ -984,7 +984,7 @@ export function useCCTPPayment(
               address: USDC_CONTRACT_ADDRESS as `0x${string}`,
               abi: ERC20_ABI,
               functionName: "allowance",
-              args: [address as `0x${string}`, INVOPAY_CONTRACT_ADDRESS as `0x${string}`],
+              args: [address as `0x${string}`, PAYZED_CONTRACT_ADDRESS as `0x${string}`],
             }) as bigint;
 
             if (allowance < invoiceAmount) {
@@ -996,13 +996,13 @@ export function useCCTPPayment(
                 address: USDC_CONTRACT_ADDRESS as `0x${string}`,
                 abi: ERC20_ABI,
                 functionName: "approve",
-                args: [INVOPAY_CONTRACT_ADDRESS as `0x${string}`, maxApproval],
+                args: [PAYZED_CONTRACT_ADDRESS as `0x${string}`, maxApproval],
               });
             } else {
               setStep("paying");
               writePayInvoice({
-                address: INVOPAY_CONTRACT_ADDRESS as `0x${string}`,
-                abi: INVOPAY_ABI,
+                address: PAYZED_CONTRACT_ADDRESS as `0x${string}`,
+                abi: PAYZED_ABI,
                 functionName: "payInvoice",
                 args: [invoiceIdBytes32],
               });

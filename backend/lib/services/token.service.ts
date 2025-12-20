@@ -1,5 +1,5 @@
 import { Address, parseUnits } from "viem";
-import { ERC20_ABI, INVOPAY_CONTRACT_ADDRESS } from "@/lib/constants";
+import { ERC20_ABI, PAYZED_CONTRACT_ADDRESS } from "@/lib/constants";
 
 export interface ApproveTokenParams {
   tokenAddress: Address;
@@ -14,7 +14,7 @@ export interface CheckAllowanceParams {
 }
 
 export function getApproveArgs(params: ApproveTokenParams) {
-  const spender = params.spender || (INVOPAY_CONTRACT_ADDRESS as Address);
+  const spender = params.spender || (PAYZED_CONTRACT_ADDRESS as Address);
   const approveAmount = params.amount + params.amount / BigInt(10);
 
   return {
@@ -26,7 +26,7 @@ export function getApproveArgs(params: ApproveTokenParams) {
 }
 
 export function getAllowanceArgs(params: CheckAllowanceParams) {
-  const spender = params.spender || (INVOPAY_CONTRACT_ADDRESS as Address);
+  const spender = params.spender || (PAYZED_CONTRACT_ADDRESS as Address);
 
   return {
     address: params.tokenAddress,

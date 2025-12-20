@@ -9,12 +9,12 @@ import {
 } from "wagmi";
 import { formatUnits, parseAbiItem } from "viem";
 import {
-  INVOPAY_CONTRACT_ADDRESS,
-  INVOPAY_FEES_CONTRACT_ADDRESS,
+  PAYZED_CONTRACT_ADDRESS,
+  PAYZED_FEES_CONTRACT_ADDRESS,
   USDC_CONTRACT_ADDRESS,
   EURC_CONTRACT_ADDRESS,
 } from "@/lib/constants";
-import { INVOPAY_ABI, INVOPAY_FEES_ABI } from "@/lib/contract-abi";
+import { PAYZED_ABI, PAYZED_FEES_ABI } from "@/lib/contract-abi";
 
 export function useOwnerDashboard() {
   const { address, isConnected } = useAccount();
@@ -30,11 +30,11 @@ export function useOwnerDashboard() {
   const [loadingEurcWithdrawn, setLoadingEurcWithdrawn] = useState(false);
 
   const { data: contractOwner } = useReadContract({
-    address: INVOPAY_CONTRACT_ADDRESS as `0x${string}`,
-    abi: INVOPAY_ABI,
+    address: PAYZED_CONTRACT_ADDRESS as `0x${string}`,
+    abi: PAYZED_ABI,
     functionName: "owner",
     query: {
-      enabled: !!INVOPAY_CONTRACT_ADDRESS && isConnected,
+      enabled: !!PAYZED_CONTRACT_ADDRESS && isConnected,
     },
   });
 
@@ -43,12 +43,12 @@ export function useOwnerDashboard() {
     refetch: refetchUsdcFees,
     isLoading: isLoadingUsdcFees,
   } = useReadContract({
-    address: INVOPAY_FEES_CONTRACT_ADDRESS as `0x${string}`,
-    abi: INVOPAY_FEES_ABI,
+    address: PAYZED_FEES_CONTRACT_ADDRESS as `0x${string}`,
+    abi: PAYZED_FEES_ABI,
     functionName: "getAccumulatedFees",
     args: [USDC_CONTRACT_ADDRESS as `0x${string}`],
     query: {
-      enabled: !!INVOPAY_FEES_CONTRACT_ADDRESS && isConnected && isOwner === true,
+      enabled: !!PAYZED_FEES_CONTRACT_ADDRESS && isConnected && isOwner === true,
       refetchInterval: 30000,
     },
   });
@@ -58,12 +58,12 @@ export function useOwnerDashboard() {
     refetch: refetchEurcFees,
     isLoading: isLoadingEurcFees,
   } = useReadContract({
-    address: INVOPAY_FEES_CONTRACT_ADDRESS as `0x${string}`,
-    abi: INVOPAY_FEES_ABI,
+    address: PAYZED_FEES_CONTRACT_ADDRESS as `0x${string}`,
+    abi: PAYZED_FEES_ABI,
     functionName: "getAccumulatedFees",
     args: [EURC_CONTRACT_ADDRESS as `0x${string}`],
     query: {
-      enabled: !!INVOPAY_FEES_CONTRACT_ADDRESS && isConnected && isOwner === true,
+      enabled: !!PAYZED_FEES_CONTRACT_ADDRESS && isConnected && isOwner === true,
       refetchInterval: 30000,
     },
   });
@@ -94,7 +94,7 @@ export function useOwnerDashboard() {
       setLoading: (loading: boolean) => void,
       setValue: (value: string) => void
     ) => {
-      if (!publicClient || !INVOPAY_FEES_CONTRACT_ADDRESS) {
+      if (!publicClient || !PAYZED_FEES_CONTRACT_ADDRESS) {
         setLoading(false);
         return;
       }
@@ -103,8 +103,8 @@ export function useOwnerDashboard() {
         setLoading(true);
 
         const totalWithdrawn = await publicClient.readContract({
-          address: INVOPAY_FEES_CONTRACT_ADDRESS as `0x${string}`,
-          abi: INVOPAY_FEES_ABI,
+          address: PAYZED_FEES_CONTRACT_ADDRESS as `0x${string}`,
+          abi: PAYZED_FEES_ABI,
           functionName: "getTotalWithdrawn",
           args: [tokenAddress as `0x${string}`],
         });
@@ -201,7 +201,7 @@ export function useOwnerDashboard() {
   }, [isOwner]);
 
   useEffect(() => {
-    if (!isOwner || !publicClient || !INVOPAY_FEES_CONTRACT_ADDRESS) {
+    if (!isOwner || !publicClient || !PAYZED_FEES_CONTRACT_ADDRESS) {
       return;
     }
     refetchWithdrawnFees();
@@ -240,22 +240,22 @@ export function useOwnerDashboard() {
   }, [isOwner, refetchUsdcFees, refetchEurcFees]);
 
   const handleWithdrawUsdc = () => {
-    if (!address || !INVOPAY_FEES_CONTRACT_ADDRESS) return;
+    if (!address || !PAYZED_FEES_CONTRACT_ADDRESS) return;
 
     writeWithdrawUsdc({
-      address: INVOPAY_FEES_CONTRACT_ADDRESS as `0x${string}`,
-      abi: INVOPAY_FEES_ABI,
+      address: PAYZED_FEES_CONTRACT_ADDRESS as `0x${string}`,
+      abi: PAYZED_FEES_ABI,
       functionName: "withdrawFees",
       args: [USDC_CONTRACT_ADDRESS as `0x${string}`, address as `0x${string}`],
     });
   };
 
   const handleWithdrawEurc = () => {
-    if (!address || !INVOPAY_FEES_CONTRACT_ADDRESS) return;
+    if (!address || !PAYZED_FEES_CONTRACT_ADDRESS) return;
 
     writeWithdrawEurc({
-      address: INVOPAY_FEES_CONTRACT_ADDRESS as `0x${string}`,
-      abi: INVOPAY_FEES_ABI,
+      address: PAYZED_FEES_CONTRACT_ADDRESS as `0x${string}`,
+      abi: PAYZED_FEES_ABI,
       functionName: "withdrawFees",
       args: [EURC_CONTRACT_ADDRESS as `0x${string}`, address as `0x${string}`],
     });

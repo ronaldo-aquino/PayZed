@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useReadContract, useWriteContract, useWaitForTransactionReceipt, useAccount } from "wagmi";
-import { INVOPAY_CONTRACT_ADDRESS, ARC_TESTNET_CHAIN_ID } from "@/lib/constants";
+import { PAYZED_CONTRACT_ADDRESS, ARC_TESTNET_CHAIN_ID } from "@/lib/constants";
 import { getAllowanceArgs, needsApproval, getApproveArgs } from "@backend/lib/services/token.service";
 
 export function useTokenAllowance(
@@ -10,7 +10,7 @@ export function useTokenAllowance(
 ) {
   const { chain } = useAccount();
   const allowanceArgs =
-    address && INVOPAY_CONTRACT_ADDRESS && tokenAddress
+    address && PAYZED_CONTRACT_ADDRESS && tokenAddress
       ? getAllowanceArgs({
           tokenAddress: tokenAddress as `0x${string}`,
           owner: address as `0x${string}`,
@@ -28,7 +28,7 @@ export function useTokenAllowance(
   } = useReadContract({
     ...allowanceArgs,
     query: {
-      enabled: !!address && !!INVOPAY_CONTRACT_ADDRESS && !!tokenAddress && !!feeAmountInWei && isCorrectChain,
+      enabled: !!address && !!PAYZED_CONTRACT_ADDRESS && !!tokenAddress && !!feeAmountInWei && isCorrectChain,
       retry: 1,
       retryDelay: 1000,
       staleTime: 0,
@@ -58,7 +58,7 @@ export function useTokenAllowance(
   }, [approvalReceipt, refetchAllowance]);
 
   useEffect(() => {
-    if (tokenAddress && address && INVOPAY_CONTRACT_ADDRESS && feeAmountInWei && isCorrectChain && !isLoadingAllowance) {
+    if (tokenAddress && address && PAYZED_CONTRACT_ADDRESS && feeAmountInWei && isCorrectChain && !isLoadingAllowance) {
       const timer = setTimeout(() => {
         refetchAllowance();
       }, 100);
@@ -88,7 +88,7 @@ export function useTokenAllowance(
     (normalizedAllowance !== undefined && feeAmountInWei !== undefined && needsApproval(normalizedAllowance, feeAmountInWei));
 
   const handleApprove = () => {
-    if (!tokenAddress || !feeAmountInWei || !INVOPAY_CONTRACT_ADDRESS) return;
+    if (!tokenAddress || !feeAmountInWei || !PAYZED_CONTRACT_ADDRESS) return;
 
     const approveArgs = getApproveArgs({
       tokenAddress: tokenAddress as `0x${string}`,

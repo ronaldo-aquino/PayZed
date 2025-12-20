@@ -30,8 +30,8 @@ async function main() {
   console.log("Contract address:", contractAddress);
   console.log("Deployer address:", deployer.address);
 
-  const Invopay = await ethers.getContractFactory("Invopay");
-  const contract = Invopay.attach(contractAddress);
+  const PayZed = await ethers.getContractFactory("PayZed");
+  const contract = PayZed.attach(contractAddress);
 
   console.log("\nSetting USDC as allowed token...");
   const tx1 = await contract.setAllowedToken(USDC_ADDRESS, true);

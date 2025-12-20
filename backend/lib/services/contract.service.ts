@@ -1,6 +1,6 @@
 import { Address, keccak256, toHex } from "viem";
-import { INVOPAY_CONTRACT_ADDRESS } from "@/lib/constants";
-import { INVOPAY_ABI } from "@/lib/contract-abi";
+import { PAYZED_CONTRACT_ADDRESS } from "@/lib/constants";
+import { PAYZED_ABI } from "@/lib/contract-abi";
 import { createPublicClient, http } from "viem";
 import { arcTestnet } from "@/lib/wagmi";
 
@@ -42,41 +42,41 @@ export function calculateGasCost(receipt: any): number | undefined {
 }
 
 export async function getInvoice(invoiceId: string) {
-  if (!INVOPAY_CONTRACT_ADDRESS) {
+  if (!PAYZED_CONTRACT_ADDRESS) {
     throw new Error("Contract address not configured");
   }
 
   const invoiceIdBytes32 = uuidToBytes32(invoiceId);
 
   return await publicClient.readContract({
-    address: INVOPAY_CONTRACT_ADDRESS as Address,
-    abi: INVOPAY_ABI,
+    address: PAYZED_CONTRACT_ADDRESS as Address,
+    abi: PAYZED_ABI,
     functionName: "getInvoice",
     args: [invoiceIdBytes32],
   });
 }
 
 export async function getAccumulatedFees(tokenAddress: Address) {
-  if (!INVOPAY_CONTRACT_ADDRESS) {
+  if (!PAYZED_CONTRACT_ADDRESS) {
     throw new Error("Contract address not configured");
   }
 
   return await publicClient.readContract({
-    address: INVOPAY_CONTRACT_ADDRESS as Address,
-    abi: INVOPAY_ABI,
+    address: PAYZED_CONTRACT_ADDRESS as Address,
+    abi: PAYZED_ABI,
     functionName: "getAccumulatedFees",
     args: [tokenAddress],
   });
 }
 
 export async function getOwner() {
-  if (!INVOPAY_CONTRACT_ADDRESS) {
+  if (!PAYZED_CONTRACT_ADDRESS) {
     throw new Error("Contract address not configured");
   }
 
   return await publicClient.readContract({
-    address: INVOPAY_CONTRACT_ADDRESS as Address,
-    abi: INVOPAY_ABI,
+    address: PAYZED_CONTRACT_ADDRESS as Address,
+    abi: PAYZED_ABI,
     functionName: "owner",
   });
 }
@@ -86,8 +86,8 @@ export async function getTransactionReceipt(hash: `0x${string}`) {
 }
 
 export function getContractAddress(): string {
-  if (!INVOPAY_CONTRACT_ADDRESS) {
+  if (!PAYZED_CONTRACT_ADDRESS) {
     throw new Error("Contract address not configured");
   }
-  return INVOPAY_CONTRACT_ADDRESS;
+  return PAYZED_CONTRACT_ADDRESS;
 }

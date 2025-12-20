@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { formatUnits } from "viem";
-import { INVOPAY_CONTRACT_ADDRESS } from "@/lib/constants";
-import { INVOPAY_ABI } from "@/lib/contract-abi";
+import { PAYZED_CONTRACT_ADDRESS } from "@/lib/constants";
+import { PAYZED_ABI } from "@/lib/contract-abi";
 import { getInvoice, calculateGasCost, generateInvoiceId } from "@backend/lib/services/contract.service";
 import { calculateFee, getCreateInvoiceArgs } from "@backend/lib/services/invoice.service";
 import { createInvoice as createInvoiceInDb } from "@backend/lib/services/invoice-db.service";
@@ -102,7 +102,7 @@ export function useCreateInvoice() {
     feeAmountInWei: bigint | undefined,
     balance: bigint | undefined
   ) => {
-    if (!address || !INVOPAY_CONTRACT_ADDRESS) {
+    if (!address || !PAYZED_CONTRACT_ADDRESS) {
       alert("Contract address not configured. Please deploy the contract first.");
       return;
     }
@@ -164,7 +164,7 @@ export function useCreateInvoice() {
           description: data.description,
         }) as unknown as {
           address: `0x${string}`;
-          abi: typeof INVOPAY_ABI;
+          abi: typeof PAYZED_ABI;
           functionName: "createInvoice";
           args: readonly [`0x${string}`, `0x${string}`, bigint, `0x${string}`, bigint, string, string];
         };
@@ -231,7 +231,7 @@ export function useCreateInvoice() {
         return;
       }
 
-      if (!receipt.to || receipt.to?.toLowerCase() !== INVOPAY_CONTRACT_ADDRESS?.toLowerCase()) {
+      if (!receipt.to || receipt.to?.toLowerCase() !== PAYZED_CONTRACT_ADDRESS?.toLowerCase()) {
         setIsCreatingOnChain(false);
         delete (window as any).__pendingInvoiceData;
         setError(

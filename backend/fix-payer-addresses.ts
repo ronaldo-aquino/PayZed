@@ -19,7 +19,7 @@ dotenv.config();
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const INVOPAY_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_INVOPAY_CONTRACT_ADDRESS!;
+const PAYZED_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_PAYZED_CONTRACT_ADDRESS!;
 
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
@@ -84,7 +84,7 @@ async function fixPayerAddresses() {
       let payerAddress: string | null = null;
 
       for (const log of receipt.logs) {
-        if (log.address?.toLowerCase() !== INVOPAY_CONTRACT_ADDRESS.toLowerCase()) {
+        if (log.address?.toLowerCase() !== PAYZED_CONTRACT_ADDRESS.toLowerCase()) {
           continue;
         }
 

@@ -29,9 +29,21 @@ async function main() {
   console.log("Contract address:", contractAddress);
 
   try {
+    // Read fees contract address from file
+    let feesContractAddress: string;
+    try {
+      const contractInfo = JSON.parse(readFileSync("./contract-address.json", "utf-8"));
+      feesContractAddress = contractInfo.feesContractAddress;
+    } catch (error) {
+      console.error("Error reading feesContractAddress from contract-address.json");
+      feesContractAddress = "";
+    }
+
+    console.log("Verifying PayZed contract...");
     await hre.run("verify:verify", {
       address: contractAddress,
-      constructorArguments: [],
+      contract: "sol/PayZed.sol:PayZed",
+      constructorArguments: feesContractAddress ? [feesContractAddress] : [],
     });
     console.log("\n✅ Contract verified successfully!");
   } catch (error: any) {

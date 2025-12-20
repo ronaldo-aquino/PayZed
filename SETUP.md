@@ -38,7 +38,7 @@ npm install
    - `NEXT_PUBLIC_SUPABASE_URL` - Your Supabase project URL
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Your Supabase anon key
    - `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` - Your WalletConnect project ID
-   - `NEXT_PUBLIC_INVOPAY_CONTRACT_ADDRESS` - **Leave empty for now** (add after deployment)
+   - `NEXT_PUBLIC_PAYZED_CONTRACT_ADDRESS` - **Leave empty for now** (add after deployment)
 
 3. Set up the environment file link for Next.js:
 

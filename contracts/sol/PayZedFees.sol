@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract InvopayFees is ReentrancyGuard, Ownable {
+contract PayZedFees is ReentrancyGuard, Ownable {
     using SafeERC20 for IERC20;
 
     mapping(address => uint256) public accumulatedFees;
@@ -93,7 +93,4 @@ contract InvopayFees is ReentrancyGuard, Ownable {
         emit SourceContractUpdated(sourceContract, allowed);
     }
 }
-
-
-
 

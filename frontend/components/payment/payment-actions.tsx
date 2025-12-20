@@ -1,6 +1,6 @@
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { Button } from "@/components/ui/button";
-import { INVOPAY_CONTRACT_ADDRESS } from "@/lib/constants";
+import { PAYZED_CONTRACT_ADDRESS } from "@/lib/constants";
 import type { Invoice } from "@backend/lib/supabase";
 import { ArrowRightLeft, Wallet } from "lucide-react";
 
@@ -41,11 +41,11 @@ export function PaymentActions({
   onOpenArcModal,
   onOpenCCTPModal,
 }: PaymentActionsProps) {
-  if (!INVOPAY_CONTRACT_ADDRESS) {
+  if (!PAYZED_CONTRACT_ADDRESS) {
     return (
       <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
         <p className="text-sm text-yellow-800 dark:text-yellow-200">
-          Contract not configured. Please set NEXT_PUBLIC_INVOPAY_CONTRACT_ADDRESS
+          Contract not configured. Please set NEXT_PUBLIC_PAYZED_CONTRACT_ADDRESS
         </p>
       </div>
     );

@@ -17,12 +17,12 @@ export default function Home() {
                 <span>Powered by Arc Testnet</span>
               </div>
               
-              <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight bg-gradient-to-r from-primary via-primary/90 to-primary/70 bg-clip-text text-transparent animate-gradient bg-[length:200%_auto] leading-tight">
-                Invopay
+              <h1 className="text-5xl pb-1 sm:text-6xl md:text-7xl font-bold tracking-tight bg-gradient-to-r from-primary via-primary/90 to-primary/70 bg-clip-text text-transparent animate-gradient bg-[length:200%_auto] leading-tight">
+                PayZed
               </h1>
               
               <p className="text-xl sm:text-2xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-                A powerful invoice creation and management platform with cross-chain USDC transfers and smart stable swap capabilities on the Arc Testnet.
+                Programmable money made simple. Create invoices, receive stablecoin payments, and bridge USDC across chains—all without technical knowledge.
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-6">
@@ -74,7 +74,7 @@ export default function Home() {
                 <CardContent>
                   <p className="text-sm text-muted-foreground leading-relaxed">
                     Receive payments in stablecoins on Arc Testnet. Desktop and mobile wallet support
-                    with QR code payments for seamless transactions.
+                    for seamless transactions.
                   </p>
                 </CardContent>
               </Card>
@@ -158,7 +158,7 @@ export default function Home() {
           <section className="py-16 sm:py-20 md:py-24 border-t border-border/50">
             <div className="text-center mb-12 sm:mb-16">
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">
-                Why Choose Invopay?
+                Why Choose PayZed?
               </h2>
               <p className="text-muted-foreground text-lg sm:text-xl max-w-2xl mx-auto">
                 Built for the future of decentralized payments

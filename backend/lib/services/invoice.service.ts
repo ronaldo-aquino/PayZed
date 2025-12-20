@@ -1,10 +1,10 @@
 import { Address, parseUnits } from "viem";
 import {
-  INVOPAY_CONTRACT_ADDRESS,
+  PAYZED_CONTRACT_ADDRESS,
   USDC_CONTRACT_ADDRESS,
   EURC_CONTRACT_ADDRESS,
 } from "@/lib/constants";
-import { INVOPAY_ABI } from "@/lib/contract-abi";
+import { PAYZED_ABI } from "@/lib/contract-abi";
 import { uuidToBytes32 } from "./contract.service";
 
 export interface CreateInvoiceParams {
@@ -50,8 +50,8 @@ export function getCreateInvoiceArgs(params: CreateInvoiceParams) {
   const expiresAt = params.expiresAt || 0;
 
   return {
-    address: INVOPAY_CONTRACT_ADDRESS as Address,
-    abi: INVOPAY_ABI,
+    address: PAYZED_CONTRACT_ADDRESS as Address,
+    abi: PAYZED_ABI,
     functionName: "createInvoice" as const,
     args: [
       invoiceIdBytes32,
@@ -69,8 +69,8 @@ export function getPayInvoiceArgs(invoiceId: string) {
   const invoiceIdBytes32 = uuidToBytes32(invoiceId);
 
   return {
-    address: INVOPAY_CONTRACT_ADDRESS as Address,
-    abi: INVOPAY_ABI,
+    address: PAYZED_CONTRACT_ADDRESS as Address,
+    abi: PAYZED_ABI,
     functionName: "payInvoice" as const,
     args: [invoiceIdBytes32],
   };
@@ -78,8 +78,8 @@ export function getPayInvoiceArgs(invoiceId: string) {
 
 export function getWithdrawFeesArgs(tokenAddress: Address, recipient: Address) {
   return {
-    address: INVOPAY_CONTRACT_ADDRESS as Address,
-    abi: INVOPAY_ABI,
+    address: PAYZED_CONTRACT_ADDRESS as Address,
+    abi: PAYZED_ABI,
     functionName: "withdrawFees" as const,
     args: [tokenAddress, recipient],
   };
