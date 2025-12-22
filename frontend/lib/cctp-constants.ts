@@ -40,6 +40,16 @@ export const CCTP_SUPPORTED_CHAINS: Record<number, CCTPChainConfig> = {
     usdcAddress: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
     blockExplorer: "https://basescan.org",
   },
+  84532: {
+    domain: CCTP_DOMAINS.BASE,
+    chainId: 84532,
+    name: "Base Sepolia",
+    rpcUrl: "https://sepolia.base.org",
+    tokenMessenger: "0x8FE6B999Dc680CcFDD5Bf7EB0974218be2542DAA",
+    messageTransmitter: "0xE737E5cEBEeba77eFE34d4Aa090756590b1Ce275",
+    usdcAddress: "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+    blockExplorer: "https://sepolia.basescan.org",
+  },
   137: {
     domain: CCTP_DOMAINS.POLYGON,
     chainId: 137,

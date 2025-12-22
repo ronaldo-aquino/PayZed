@@ -64,28 +64,48 @@ export function ArcPaymentModal({
     if (isPayError || isPaymentReceiptError) return "error";
     if (isPaying || isPaymentConfirming) return "paying";
     if (isApproving || isApprovalConfirming) return "approving";
-    return "approving";
+    return needsApproval ? "approving" : "paying";
   };
 
   const currentStep = getCurrentStep();
 
-  const getStepStatus = (stepName: PaymentStep, current: PaymentStep) => {
-    if (stepName === current) {
-      if (current === "error") return "error";
-      if (current === "success") return "completed";
-      return "active";
+  const getStepStatus = (stepName: PaymentStep) => {
+    if (stepName === "approving") {
+      if (isApproving || isApprovalConfirming) {
+        return "active";
+      }
+      if (!needsApproval) {
+        return "completed";
+      }
+      if (currentStep === "approving") {
+        return "pending";
+      }
+      if (currentStep === "paying" || currentStep === "success") {
+        return "completed";
+      }
+      return "pending";
     }
     
-    const stepOrder: PaymentStep[] = ["approving", "paying", "success"];
-    const currentIndex = stepOrder.indexOf(current);
-    const stepIndex = stepOrder.indexOf(stepName);
+    if (stepName === "paying") {
+      if (isPaying || isPaymentConfirming) {
+        return "active";
+      }
+      if (currentStep === "success") {
+        return "completed";
+      }
+      if (currentStep === "error") {
+        return "error";
+      }
+      if (currentStep === "paying") {
+        return "pending";
+      }
+      return "pending";
+    }
     
-    if (current === "error" && stepIndex < currentIndex) return "completed";
-    if (stepIndex < currentIndex || current === "success") return "completed";
     return "pending";
   };
 
-  const steps: PaymentStep[] = needsApproval ? ["approving", "paying"] : ["paying"];
+  const steps: PaymentStep[] = ["approving", "paying"];
 
   const handleClose = (open: boolean) => {
     if (!open && currentStep !== "paying" && currentStep !== "approving") {
@@ -110,70 +130,71 @@ export function ArcPaymentModal({
         </DialogHeader>
 
         <div className="space-y-6 py-4">
-          <div className="space-y-4">
-            {steps.map((stepName) => {
-              const status = getStepStatus(stepName, currentStep);
-              const config = stepConfig[stepName];
-              
-              return (
-                <div key={stepName} className="flex items-start gap-4">
-                  <div className="flex-shrink-0 mt-0.5">
-                    {status === "completed" ? (
-                      <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center">
-                        <CheckCircle2 className="w-5 h-5 text-white" />
-                      </div>
-                    ) : status === "active" ? (
-                      <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center">
-                        <Loader2 className="w-5 h-5 text-white animate-spin" />
-                      </div>
-                    ) : status === "error" && stepName === currentStep ? (
-                      <div className="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center">
-                        <XCircle className="w-5 h-5 text-white" />
-                      </div>
-                    ) : (
-                      <div className="w-8 h-8 rounded-full border-2 border-muted flex items-center justify-center">
-                        <Circle className="w-5 h-5 text-muted-foreground" />
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex-1 space-y-1">
-                    <div className="flex items-center justify-between">
-                      <p className={`font-semibold ${
-                        status === "active" ? "text-blue-600 dark:text-blue-400" :
-                        status === "completed" ? "text-green-600 dark:text-green-400" :
-                        status === "error" ? "text-red-600 dark:text-red-400" :
-                        "text-muted-foreground"
-                      }`}>
-                        {config.label}
-                      </p>
-                      {status === "active" && (
-                        <span className="text-xs text-blue-600 dark:text-blue-400 animate-pulse">
-                          In progress...
-                        </span>
+          <div className="space-y-6">
+            <div className="space-y-4">
+              {steps.map((stepName) => {
+                const status = getStepStatus(stepName);
+                const config = stepConfig[stepName];
+                
+                return (
+                  <div key={stepName} className="flex items-start gap-4">
+                    <div className="flex-shrink-0 mt-0.5">
+                      {status === "completed" ? (
+                        <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center">
+                          <CheckCircle2 className="w-5 h-5 text-white" />
+                        </div>
+                      ) : status === "active" ? (
+                        <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center">
+                          <Loader2 className="w-5 h-5 text-white animate-spin" />
+                        </div>
+                      ) : status === "error" && stepName === currentStep ? (
+                        <div className="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center">
+                          <XCircle className="w-5 h-5 text-white" />
+                        </div>
+                      ) : (
+                        <div className="w-8 h-8 rounded-full border-2 border-muted flex items-center justify-center">
+                          <Circle className="w-5 h-5 text-muted-foreground" />
+                        </div>
                       )}
                     </div>
-                    <p className="text-sm text-muted-foreground">{config.description}</p>
-                    
-                    {stepName === "paying" && transferHash && (
-                      <div className="mt-2 text-xs">
-                        <a
-                          href={`https://testnet.arcscan.app/tx/${transferHash}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 dark:text-blue-400 hover:underline break-all"
-                        >
-                          View payment transaction
-                        </a>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
 
-          {currentStep === "error" && (
+                    <div className="flex-1 space-y-1">
+                      <div className="flex items-center justify-between">
+                        <p className={`font-semibold ${
+                          status === "active" ? "text-blue-600 dark:text-blue-400" :
+                          status === "completed" ? "text-green-600 dark:text-green-400" :
+                          status === "error" ? "text-red-600 dark:text-red-400" :
+                          "text-muted-foreground"
+                        }`}>
+                          {config.label}
+                        </p>
+                        {status === "active" && (
+                          <span className="text-xs text-blue-600 dark:text-blue-400 animate-pulse">
+                            In progress...
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-muted-foreground">{config.description}</p>
+                      
+                      {stepName === "paying" && transferHash && (
+                        <div className="mt-2 text-xs">
+                          <a
+                            href={`https://testnet.arcscan.app/tx/${transferHash}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 dark:text-blue-400 hover:underline break-all"
+                          >
+                            View payment transaction
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {currentStep === "error" && (
             <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
               <p className="text-sm font-semibold text-red-800 dark:text-red-200 mb-2">Error</p>
               <p className="text-sm text-red-700 dark:text-red-300 break-words">
@@ -231,6 +252,7 @@ export function ArcPaymentModal({
               )}
             </div>
           )}
+          </div>
         </div>
       </DialogContent>
     </Dialog>

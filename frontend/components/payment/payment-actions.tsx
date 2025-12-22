@@ -1,8 +1,9 @@
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { Button } from "@/components/ui/button";
-import { PAYZED_CONTRACT_ADDRESS } from "@/lib/constants";
+import { PAYZED_CONTRACT_ADDRESS, ARC_TESTNET_CHAIN_ID } from "@/lib/constants";
 import type { Invoice } from "@backend/lib/supabase";
-import { ArrowRightLeft, Wallet } from "lucide-react";
+import { ArrowRightLeft, Wallet, AlertCircle } from "lucide-react";
+import { useAccount, useSwitchChain } from "wagmi";
 
 interface PaymentActionsProps {
   invoice: Invoice;
@@ -41,6 +42,9 @@ export function PaymentActions({
   onOpenArcModal,
   onOpenCCTPModal,
 }: PaymentActionsProps) {
+  const { chain } = useAccount();
+  const { switchChainAsync, isPending: isSwitchingChain } = useSwitchChain();
+
   if (!PAYZED_CONTRACT_ADDRESS) {
     return (
       <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
@@ -56,11 +60,52 @@ export function PaymentActions({
   }
 
   if (!onChainInvoice) {
+    const isOnArcTestnet = chain?.id === ARC_TESTNET_CHAIN_ID;
+    const handleSwitchToArc = async () => {
+      if (switchChainAsync) {
+        try {
+          await switchChainAsync({ chainId: ARC_TESTNET_CHAIN_ID });
+        } catch (error) {
+          console.error("Failed to switch chain:", error);
+        }
+      }
+    };
+
     return (
-      <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-        <p className="text-sm text-yellow-800 dark:text-yellow-200">
-          Invoice is not yet registered on-chain. Please wait for the registration to complete.
-        </p>
+      <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg space-y-3">
+        <div className="flex items-start gap-2">
+          <AlertCircle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-yellow-800 dark:text-yellow-200 mb-1">
+              Cannot access invoice on-chain
+            </p>
+            <p className="text-sm text-yellow-700 dark:text-yellow-300">
+              {isOnArcTestnet 
+                ? "Unable to read the invoice from the contract. This may be a temporary network issue. Please try refreshing the page or check your connection."
+                : "To access the invoice and make a payment, you need to be connected to Arc Testnet. Please switch your wallet to Arc Testnet to continue."}
+            </p>
+          </div>
+        </div>
+        {!isOnArcTestnet && typeof switchChainAsync !== 'undefined' && (
+          <Button
+            onClick={handleSwitchToArc}
+            disabled={isSwitchingChain}
+            className="w-full bg-yellow-600 hover:bg-yellow-700 text-white dark:bg-yellow-600 dark:hover:bg-yellow-700"
+            size="lg"
+          >
+            {isSwitchingChain ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                Switching to Arc Testnet...
+              </>
+            ) : (
+              <>
+                <Wallet className="mr-2 h-4 w-4" />
+                Switch to Arc Testnet (Chain ID: {ARC_TESTNET_CHAIN_ID})
+              </>
+            )}
+          </Button>
+        )}
       </div>
     );
   }

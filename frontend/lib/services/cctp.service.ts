@@ -48,6 +48,9 @@ export async function approveUSDCForCCTP(
   let sourceChain;
   if (sourceChainId === 11155111) {
     sourceChain = sepolia;
+  } else if (sourceChainId === 84532) {
+    const { baseSepolia } = await import("@/lib/wagmi");
+    sourceChain = baseSepolia;
   } else {
     sourceChain = defineChain({
       id: sourceChainId,
@@ -94,6 +97,20 @@ export async function approveUSDCForCCTP(
     return "0x" as `0x${string}`;
   }
 
+  let walletChainId: number;
+  try {
+    walletChainId = await walletClient.getChainId();
+    
+    if (walletChainId !== sourceChainId) {
+      const sourceChainName = sourceConfig.name;
+      throw new Error(`Please switch your wallet to ${sourceChainName} (Chain ID: ${sourceChainId}) to approve USDC. Your wallet is currently on chain ${walletChainId}.`);
+    }
+  } catch (chainCheckError: any) {
+    if (chainCheckError.message.includes("Please switch your wallet")) {
+      throw chainCheckError;
+    }
+  }
+  
   const maxApproval = BigInt("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
   
   const approveHash = await walletClient.writeContract({
@@ -101,6 +118,7 @@ export async function approveUSDCForCCTP(
     abi: ERC20_ABI,
     functionName: "approve",
     args: [sourceConfig.tokenMessenger, maxApproval],
+    chain: sourceChain,
   });
 
   const approveReceipt = await publicClient.waitForTransactionReceipt({ hash: approveHash });
@@ -324,8 +342,12 @@ export async function burnUSDC(
   } catch (error: any) {
     const errorMessage = error?.message || error?.shortMessage || error?.cause?.message || "Unknown error";
     
-    if (errorMessage.includes("network") || errorMessage.includes("timeout") || errorMessage.includes("fetch")) {
+    if (errorMessage.includes("network") || errorMessage.includes("timeout") || errorMessage.includes("fetch") || errorMessage.includes("ECONNREFUSED")) {
       throw new Error("Network error. Please check your connection and try again.");
+    }
+    
+    if (errorMessage.includes("does not exist") || errorMessage.includes("code does not exist") || errorMessage.includes("execution reverted")) {
+      throw new Error(`Contract error: ${errorMessage}. This might indicate an issue with the contract addresses for this chain.`);
     }
     
     throw new Error(`Failed to send burn transaction: ${errorMessage}. Please check your balance, allowance, and ensure you're on the correct network.`);
@@ -507,29 +529,22 @@ async function getMessageFromCircleAPI(
       if (data.messages && data.messages.length > 0) {
         const messageData = data.messages[0];
         
-        // Check message status - if it's still pending, wait
         const messageStatus = messageData.status;
         if (messageStatus === 'pending_confirmations' || messageStatus === 'pending') {
-          // For pending_confirmations, wait longer but don't fail immediately
-          // Circle needs time to process - this is normal
           if (attempt < maxAttempts - 1) {
-            // Use longer delay for pending confirmations
             await new Promise((resolve) => setTimeout(resolve, Math.min(delayMs * 2, maxDelayMs)));
             continue;
           } else {
-            // After max attempts, still allow user to complete manually
             throw new Error(`Message is still pending confirmations. This is normal - Circle needs 5-15 minutes to process. Please use the "Complete Mint & Pay" button in a few minutes.`);
           }
         }
         
-        // Check for both 'nonce' and 'eventNonce' fields
         const nonceValue = messageData.nonce ?? messageData.eventNonce ?? messageData.decodedMessage?.nonce;
         
-        // Verify message is not empty (sometimes API returns '0x' while processing)
         const rawMessage = messageData.message;
         if (!rawMessage || rawMessage === '0x' || rawMessage.length < 10) {
           if (attempt < maxAttempts - 1) {
-            continue; // Wait and retry
+            continue;
           } else {
             throw new Error(`Message is not yet available. Please wait a few more minutes and try again.`);
           }
@@ -540,7 +555,6 @@ async function getMessageFromCircleAPI(
           const messageHash = keccak256(message);
           const nonce = BigInt(nonceValue);
           
-          // Only return attestation if it's a valid hex string (not 'PENDING' or empty)
           let attestation: string | undefined = undefined;
           const rawAttestation = messageData.attestation;
           if (rawAttestation && 
@@ -559,17 +573,14 @@ async function getMessageFromCircleAPI(
       } else {
       }
       
-      // If we get here, the response was OK but no messages found
-      // This might mean the transaction is still being processed
       if (attempt < maxAttempts - 1) {
-        continue; // Will wait before next attempt
+        continue;
       }
     } catch (error: any) {
       if (attempt === maxAttempts - 1) {
         const errorMessage = error?.message || "Could not retrieve message from Circle API";
         throw new Error(`${errorMessage}. Please try again or check the transaction on the block explorer.`);
       }
-      // Continue to next attempt
     }
   }
   
@@ -582,11 +593,9 @@ export async function fetchAttestation(
   txHash: `0x${string}`,
   sourceDomain: number
 ): Promise<string> {
-  // CCTP v2: Get attestation from v2 API endpoint
-  // The v1 /attestations endpoint is deprecated and returns 404
-  const maxAttempts = 15; // Reduced attempts
-  const initialDelayMs = 2000; // Faster initial delay
-  const maxDelayMs = 8000; // Faster max delay
+  const maxAttempts = 15;
+  const initialDelayMs = 2000;
+  const maxDelayMs = 8000;
 
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     try {
@@ -601,7 +610,6 @@ export async function fetchAttestation(
         return messageData.attestation;
       }
 
-      // If no attestation yet, wait and retry (Circle may still be processing)
       if (attempt < maxAttempts - 1) {
         continue;
       }
@@ -612,7 +620,6 @@ export async function fetchAttestation(
         const errorMessage = error?.message || "Failed to fetch attestation";
         throw new Error(`${errorMessage}. Please wait a few minutes for Circle to process the transaction and try the 'Complete Mint & Pay' button again.`);
       }
-      // Continue to next attempt
     }
   }
 
@@ -631,7 +638,6 @@ export async function mintUSDC(
     throw new Error("Unsupported destination chain");
   }
 
-  // For destination chain (Arc Testnet), use defineChain
   const destChain = defineChain({
     id: destinationChainId,
     name: destConfig.name,
@@ -671,9 +677,6 @@ export async function mintUSDC(
     throw new Error(`Invalid message format: ${message?.substring(0, 50)}...`);
   }
 
-  
-  // CRITICAL: Verify the walletClient is on the correct chain BEFORE attempting mint
-  // This prevents the chain mismatch error where wallet is on Arc but transaction expects Sepolia
   let walletChainId: number;
   try {
     walletChainId = await walletClient.getChainId();
@@ -682,17 +685,13 @@ export async function mintUSDC(
       throw new Error(`CRITICAL ERROR: Your wallet is on chain ${walletChainId}, but needs to be on ${destinationChainId} (Arc Testnet) to mint. Please manually switch your wallet to Arc Testnet and click "Complete Mint & Pay" again.`);
     }
   } catch (chainCheckError: any) {
-    // If getChainId fails, it might be a different error - check the message
     if (chainCheckError.message.includes("CRITICAL ERROR")) {
       throw chainCheckError;
     }
-    // If it's a different error, log it but continue - the writeContract will fail with a clearer error
   }
   
   let mintHash: `0x${string}`;
   try {
-    // The walletClient should be on the correct chain now (verified above)
-    // If it's not, the error will be caught below
     mintHash = await walletClient.writeContract({
       address: destConfig.messageTransmitter,
       abi: MESSAGE_TRANSMITTER_ABI,
@@ -721,7 +720,6 @@ export async function mintUSDC(
   }
 
   if (receipt.status === "reverted") {
-    // Try to get revert reason by simulating the call
     let revertReason = "Unknown reason";
     try {
       await publicClient.call({
@@ -736,7 +734,6 @@ export async function mintUSDC(
     } catch (callError: any) {
       const errorMsg = callError?.message || callError?.shortMessage || "";
       
-      // Check for common revert reasons
       if (errorMsg.includes("InvalidAttestation") || errorMsg.includes("invalid attestation")) {
         revertReason = "Invalid attestation - verify it is correct and not expired";
       } else if (errorMsg.includes("MessageAlreadyExecuted") || errorMsg.includes("already executed")) {

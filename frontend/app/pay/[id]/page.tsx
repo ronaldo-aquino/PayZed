@@ -65,7 +65,7 @@ export default function PaymentPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="flex-1 flex items-center justify-center">
         <p>Loading invoice...</p>
       </div>
     );
@@ -108,7 +108,7 @@ export default function PaymentPage() {
                 />
 
                 {invoice.status === "pending" && (
-                  <div className="border-t-2 border-border/60 pt-4">
+                  <div className="hidden md:block border-t-2 border-border/60 pt-4">
                     <Button
                       onClick={() => setQrCodeModalOpen(true)}
                       variant="outline"
@@ -117,8 +117,7 @@ export default function PaymentPage() {
                     >
                       <QrCode className="mr-2 h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
                       <span className="text-xs sm:text-sm md:text-base">
-                        <span className="hidden sm:inline">Scan this page with your mobile device to access the payment page</span>
-                        <span className="sm:hidden">Scan QR Code</span>
+                        Scan this page with your mobile device to access the payment page
                       </span>
                     </Button>
                   </div>

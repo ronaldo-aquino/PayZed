@@ -364,8 +364,15 @@ export function useCCTPPayment(
     }
   };
 
+  const testnetChainIds = [11155111, 84532];
   const availableSourceChains = Object.values(CCTP_SUPPORTED_CHAINS).filter(
-    (chain) => chain.chainId !== destinationChainId
+    (chain) => {
+      if (chain.chainId === destinationChainId) return false;
+      if (destinationChainId === ARC_TESTNET_CHAIN_ID) {
+        return testnetChainIds.includes(chain.chainId);
+      }
+      return true;
+    }
   );
 
   const initiateCCTPPayment = async (selectedSourceChainId: number) => {
@@ -428,14 +435,24 @@ export function useCCTPPayment(
 
       if (publicClient?.chain?.id !== selectedSourceChainId && switchChainAsync) {
         await switchChainAsync({ chainId: selectedSourceChainId });
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        const currentChainId = await walletClient.getChainId();
+        if (currentChainId !== selectedSourceChainId) {
+          const chainName = sourceConfig.name;
+          throw new Error(`Failed to switch to ${chainName}. Please manually switch your wallet to ${chainName} (Chain ID: ${selectedSourceChainId}) and try again.`);
+        }
       }
 
       const { createPublicClient, http, formatEther, defineChain } = await import("viem");
       const { sepolia } = await import("wagmi/chains");
+      const { baseSepolia } = await import("@/lib/wagmi");
       
       let sourceChain;
       if (selectedSourceChainId === 11155111) {
         sourceChain = sepolia;
+      } else if (selectedSourceChainId === 84532) {
+        sourceChain = baseSepolia;
       } else {
         sourceChain = defineChain({
           id: selectedSourceChainId,
@@ -491,10 +508,13 @@ export function useCCTPPayment(
       if (approveHash && approveHash !== "0x") {
         const { createPublicClient, http, defineChain } = await import("viem");
         const { sepolia } = await import("wagmi/chains");
+        const { baseSepolia } = await import("@/lib/wagmi");
         
         let sourceChain;
         if (selectedSourceChainId === 11155111) {
           sourceChain = sepolia;
+        } else if (selectedSourceChainId === 84532) {
+          sourceChain = baseSepolia;
         } else {
           sourceChain = defineChain({
             id: selectedSourceChainId,
@@ -752,16 +772,51 @@ export function useCCTPPayment(
       let errorMessage = "CCTP payment failed";
       
       if (err?.message) {
-        if (err.message.includes("User rejected")) {
+        const msg = err.message;
+        
+        if (msg.includes("User rejected") || msg.includes("user rejected")) {
           errorMessage = "Transaction was rejected. Please try again.";
-        } else if (err.message.includes("insufficient funds") || err.message.includes("insufficient balance")) {
+        } else if (msg.includes("insufficient funds") || msg.includes("insufficient balance")) {
           errorMessage = "Insufficient balance. Please ensure you have enough USDC.";
-        } else if (err.message.includes("network") || err.message.includes("chain")) {
+        } else if (msg.includes("Please switch your wallet") || msg.includes("does not match the target chain") || msg.includes("ChainMismatch")) {
+          if (msg.includes("Please switch your wallet")) {
+            errorMessage = msg;
+          } else {
+            const currentChainMatch = msg.match(/Current Chain ID[:\s]+(\d+)/i) || msg.match(/\(id:\s*(\d+)\)/);
+            const expectedChainMatch = msg.match(/Expected Chain ID[:\s]+(\d+)/i) || msg.match(/target chain.*?(\d+)/i);
+            
+            if (currentChainMatch && expectedChainMatch) {
+              const currentId = currentChainMatch[1];
+              const expectedId = expectedChainMatch[1];
+              const currentChainName = CCTP_SUPPORTED_CHAINS[parseInt(currentId)]?.name || `Chain ${currentId}`;
+              const expectedChainName = expectedId === "5042002" ? "Arc Testnet" : CCTP_SUPPORTED_CHAINS[parseInt(expectedId)]?.name || `Chain ${expectedId}`;
+              
+              errorMessage = `Please switch your wallet to ${expectedChainName} (Chain ID: ${expectedId}). Your wallet is currently on ${currentChainName}.`;
+            } else {
+              errorMessage = "Chain mismatch error. Please ensure you're on the correct network for this step.";
+            }
+          }
+        } else if (msg.includes("network") || msg.includes("timeout") || msg.includes("fetch")) {
           errorMessage = "Network error. Please check your connection and try again.";
-        } else if (err.message.length > 100) {
-          errorMessage = err.message.substring(0, 100) + "...";
+        } else if (msg.includes("Contract error")) {
+          const contractErrorMatch = msg.match(/Contract error:\s*(.+?)(?:\s+Contract Call|$)/i);
+          errorMessage = contractErrorMatch ? `Contract error: ${contractErrorMatch[1].substring(0, 150)}` : "Contract error. Please verify the contract addresses are correct.";
         } else {
-          errorMessage = err.message;
+          let cleanMsg = msg
+            .replace(/Request Arguments:.*$/i, "")
+            .replace(/Contract Call:.*$/i, "")
+            .replace(/address:.*$/i, "")
+            .replace(/function:.*$/i, "")
+            .replace(/args:.*$/i, "")
+            .replace(/Docs:.*$/i, "")
+            .replace(/\s+/g, " ")
+            .trim();
+          
+          if (cleanMsg.length > 250) {
+            cleanMsg = cleanMsg.substring(0, 250) + "...";
+          }
+          
+          errorMessage = cleanMsg || "An error occurred during payment. Please try again.";
         }
       }
       

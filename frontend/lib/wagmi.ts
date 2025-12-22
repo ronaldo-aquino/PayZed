@@ -25,6 +25,28 @@ export const arcTestnet = defineChain({
   testnet: true,
 });
 
+export const baseSepolia = defineChain({
+  id: 84532,
+  name: "Base Sepolia",
+  nativeCurrency: {
+    decimals: 18,
+    name: "ETH",
+    symbol: "ETH",
+  },
+  rpcUrls: {
+    default: {
+      http: ["https://sepolia.base.org"],
+    },
+  },
+  blockExplorers: {
+    default: {
+      name: "BaseSepolia Explorer",
+      url: "https://sepolia.basescan.org",
+    },
+  },
+  testnet: true,
+});
+
 const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "000000000000000000000000000000000000000000";
 
 if (!process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID) {
@@ -34,12 +56,13 @@ if (!process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID) {
 export const config = getDefaultConfig({
   appName: "PayZed",
   projectId,
-  chains: [arcTestnet, mainnet, base, polygon, sepolia],
+  chains: [arcTestnet, mainnet, base, baseSepolia, polygon, sepolia],
   ssr: true,
   transports: {
     [arcTestnet.id]: http(),
     [mainnet.id]: http(),
     [base.id]: http(),
+    [baseSepolia.id]: http(),
     [polygon.id]: http(),
     [sepolia.id]: http(),
   },

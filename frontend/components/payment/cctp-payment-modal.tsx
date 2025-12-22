@@ -275,8 +275,13 @@ export function CCTPPaymentModal({
 
               {error && step === "error" && (
                 <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-                  <p className="text-sm font-semibold text-red-800 dark:text-red-200 mb-2">Error</p>
-                  <p className="text-sm text-red-700 dark:text-red-300 break-words">{error}</p>
+                  <div className="flex items-start gap-2 mb-2">
+                    <XCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+                    <p className="text-sm font-semibold text-red-800 dark:text-red-200">Error</p>
+                  </div>
+                  <div className="ml-7">
+                    <p className="text-sm text-red-700 dark:text-red-300 break-words whitespace-pre-wrap leading-relaxed">{error}</p>
+                  </div>
                   
                   {canCompleteMint && (
                     <div className="mt-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">

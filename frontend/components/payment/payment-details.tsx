@@ -72,7 +72,7 @@ export function PaymentDetails({
             Receiver Address
           </p>
           <div className="flex items-center gap-2 bg-background px-2 sm:px-3 py-1.5 sm:py-2 rounded-md border">
-            <p className="font-mono text-xs sm:text-sm font-medium flex-1">
+            <p className="font-mono text-xs sm:text-sm font-medium flex-1 break-all">
               {truncateAddressMiddle(invoice.receiver_wallet_address)}
             </p>
             <Button
@@ -122,7 +122,7 @@ export function PaymentDetails({
                 href={`https://testnet.arcscan.app/tx/${invoice.transaction_hash}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs sm:text-sm text-primary hover:underline font-mono flex-1"
+                className="text-xs sm:text-sm text-primary hover:underline font-mono flex-1 break-all"
               >
                 {truncateAddressMiddle(invoice.transaction_hash)}
               </a>

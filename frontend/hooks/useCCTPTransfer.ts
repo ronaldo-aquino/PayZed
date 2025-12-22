@@ -37,8 +37,17 @@ export function useCCTPTransfer() {
 
   const destinationChainId = ARC_TESTNET_CHAIN_ID;
 
+  // Filter to show only testnets when destination is Arc Testnet
+  const testnetChainIds = [11155111, 84532]; // Sepolia and Base Sepolia
   const availableSourceChains = Object.values(CCTP_SUPPORTED_CHAINS).filter(
-    (chain) => chain.chainId !== destinationChainId
+    (chain) => {
+      if (chain.chainId === destinationChainId) return false;
+      // When destination is Arc Testnet, only show testnet chains
+      if (destinationChainId === ARC_TESTNET_CHAIN_ID) {
+        return testnetChainIds.includes(chain.chainId);
+      }
+      return true;
+    }
   );
 
   const initiateTransfer = async (selectedSourceChainId: number, transferAmount: string) => {
@@ -107,10 +116,13 @@ export function useCCTPTransfer() {
       // Check native token balance on source chain
       const { createPublicClient, http, formatEther, defineChain } = await import("viem");
       const { sepolia } = await import("wagmi/chains");
+      const { baseSepolia } = await import("@/lib/wagmi");
       
       let sourceChain;
       if (selectedSourceChainId === 11155111) {
         sourceChain = sepolia;
+      } else if (selectedSourceChainId === 84532) {
+        sourceChain = baseSepolia;
       } else {
         sourceChain = defineChain({
           id: selectedSourceChainId,
@@ -409,4 +421,5 @@ export function useCCTPTransfer() {
     },
   };
 }
+
 
