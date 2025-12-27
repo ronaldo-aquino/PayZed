@@ -99,7 +99,6 @@ export async function getInvoicesPaidByUser(userAddress: string) {
     .from("invoices")
     .select("*")
     .eq("payer_address", userAddress.toLowerCase())
-    .neq("user_wallet_address", userAddress.toLowerCase())
     .eq("status", "paid")
     .not("payer_address", "is", null)
     .order("created_at", { ascending: false });
@@ -189,7 +188,6 @@ export async function getInvoicesPaidByUserPaginated(
     .from("invoices")
     .select("*")
     .eq("payer_address", userAddress.toLowerCase())
-    .neq("user_wallet_address", userAddress.toLowerCase())
     .eq("status", "paid")
     .not("payer_address", "is", null)
     .order("created_at", { ascending: false })
