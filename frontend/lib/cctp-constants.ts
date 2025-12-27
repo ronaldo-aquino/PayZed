@@ -82,9 +82,12 @@ export const CCTP_SUPPORTED_CHAINS: Record<number, CCTPChainConfig> = {
   },
 };
 
+// Note: CCTP V2 uses /v2/messages/ endpoint, not /attestations
+// This constant is kept for reference but not used in the codebase
+// The actual API endpoints are constructed in cctp.service.ts
 export const CCTP_ATTESTATION_API = {
-  testnet: "https://iris-api-sandbox.circle.com/attestations",
-  mainnet: "https://iris-api.circle.com/attestations",
+  testnet: "https://iris-api-sandbox.circle.com/v2/messages",
+  mainnet: "https://iris-api.circle.com/v2/messages",
 };
 
 export const CCTP_ABI = {
@@ -95,17 +98,13 @@ export const CCTP_ABI = {
         { name: "destinationDomain", type: "uint32" },
         { name: "mintRecipient", type: "bytes32" },
         { name: "burnToken", type: "address" },
+        { name: "destinationCaller", type: "bytes32" },
+        { name: "maxFee", type: "uint256" },
+        { name: "minFinalityThreshold", type: "uint32" },
       ],
       name: "depositForBurn",
-      outputs: [{ name: "nonce", type: "uint64" }],
+      outputs: [{ name: "_nonce", type: "uint64" }],
       stateMutability: "nonpayable",
-      type: "function",
-    },
-    {
-      inputs: [{ name: "nonce", type: "uint64" }],
-      name: "depositForBurnWithCaller",
-      outputs: [],
-      stateMutability: "view",
       type: "function",
     },
   ],
