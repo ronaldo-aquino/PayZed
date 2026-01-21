@@ -122,7 +122,14 @@ export const CCTP_ABI = {
     {
       inputs: [{ name: "message", type: "bytes" }],
       name: "getMessageHash",
-      outputs: [{ name: "messageHash", type: "bytes32" }],
+      outputs: [{ name: "", type: "bytes32" }],
+      stateMutability: "view",
+      type: "function",
+    },
+    {
+      inputs: [{ name: "messageHash", type: "bytes32" }],
+      name: "usedNonces",
+      outputs: [{ name: "", type: "bool" }],
       stateMutability: "view",
       type: "function",
     },

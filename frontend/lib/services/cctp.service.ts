@@ -279,7 +279,8 @@ export async function burnUSDC(
     }
   }
 
-  const mintRecipient = pad(recipient, { size: 32, dir: "right" }) as `0x${string}`;
+  // const mintRecipient = pad(recipient, { size: 32, dir: "right" }) as `0x${string}`;
+const mintRecipient = pad(recipient, { size: 32, dir: "left" }) as `0x${string}`;
   const destinationCallerParam = "0x0000000000000000000000000000000000000000000000000000000000000000" as `0x${string}`;
   
   let maxFee = 0n;
@@ -468,19 +469,28 @@ export async function burnUSDC(
 async function getMessageFromCircleAPI(
   txHash: `0x${string}`,
   sourceDomain: number,
-  isTestnet: boolean = true
+  isTestnet: boolean = true,
+  skipInitialWait: boolean = false
 ): Promise<{ message: `0x${string}`; messageHash: `0x${string}`; nonce: bigint; attestation?: string }> {
   const apiUrl = isTestnet 
     ? `https://iris-api-sandbox.circle.com/v2/messages/${sourceDomain}`
     : `https://iris-api.circle.com/v2/messages/${sourceDomain}`;
   
-  const maxAttempts = 20;
-  const initialDelayMs = 2000;
-  const maxDelayMs = 8000;
+  // Circle API typically takes 30-60 seconds to process, so we wait a bit before first attempt
+  const initialWaitMs = 10000; // Wait 10 seconds before first attempt
+  const maxAttempts = 30; // Increased attempts (total ~10 minutes with delays)
+  const initialDelayMs = 5000; // Start with 5 second delays
+  const maxDelayMs = 15000; // Max 15 seconds between attempts
+  
+  // Initial wait before first attempt (skip if called from fetchAttestation)
+  if (!skipInitialWait) {
+    await new Promise((resolve) => setTimeout(resolve, initialWaitMs));
+  }
   
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     try {
-      const delayMs = Math.min(initialDelayMs + (attempt * 500), maxDelayMs);
+      // Exponential backoff with cap: 5s, 6s, 7s, 8s, ..., 15s
+      const delayMs = Math.min(initialDelayMs + (attempt * 1000), maxDelayMs);
       if (attempt > 0) {
         await new Promise((resolve) => setTimeout(resolve, delayMs));
       }
@@ -506,9 +516,12 @@ async function getMessageFromCircleAPI(
         
         if (response.status === 404) {
           if (attempt < maxAttempts - 1) {
+            // For 404, wait a bit longer as the message might still be processing
+            await new Promise((resolve) => setTimeout(resolve, Math.min(delayMs * 1.5, maxDelayMs)));
             continue;
           } else {
-            throw new Error(`Message not found in Circle API after ${maxAttempts} attempts (${Math.round((maxAttempts * delayMs) / 1000 / 60)} minutes of waiting). This usually means: 1) The transaction is still being processed by Circle (can take 5-15 minutes), 2) The burn transaction did not create a valid CCTP message, or 3) There's an issue with Circle's API. Please verify the burn transaction on the block explorer and try the "Complete Mint & Pay" button in 10-15 minutes. Transaction: ${txHash}`);
+            const totalWaitMinutes = Math.round((initialWaitMs + (maxAttempts * delayMs)) / 1000 / 60);
+            throw new Error(`Message not found in Circle API after ${maxAttempts} attempts (~${totalWaitMinutes} minutes of waiting). This is normal - Circle needs 1-5 minutes to process. Please wait a bit more and use the "Complete Mint & Pay" button. Transaction: ${txHash.substring(0, 10)}...`);
           }
         }
         
@@ -532,10 +545,11 @@ async function getMessageFromCircleAPI(
         const messageStatus = messageData.status;
         if (messageStatus === 'pending_confirmations' || messageStatus === 'pending') {
           if (attempt < maxAttempts - 1) {
+            // Wait longer for pending messages
             await new Promise((resolve) => setTimeout(resolve, Math.min(delayMs * 2, maxDelayMs)));
             continue;
           } else {
-            throw new Error(`Message is still pending confirmations. This is normal - Circle needs 5-15 minutes to process. Please use the "Complete Mint & Pay" button in a few minutes.`);
+            throw new Error(`Message is still pending confirmations. This is normal - Circle needs 1-5 minutes to process. Please wait a bit more and use the "Complete Mint & Pay" button.`);
           }
         }
         
@@ -593,28 +607,38 @@ export async function fetchAttestation(
   txHash: `0x${string}`,
   sourceDomain: number
 ): Promise<string> {
-  const maxAttempts = 15;
-  const initialDelayMs = 2000;
-  const maxDelayMs = 8000;
+  // When fetching attestation, message usually already exists, so shorter initial wait
+  const initialWaitMs = 5000; // Wait 5 seconds before first attempt (getMessageFromCircleAPI will also wait)
+  const maxAttempts = 25; // Increased attempts
+  const initialDelayMs = 5000; // Start with 5 second delays
+  const maxDelayMs = 15000; // Max 15 seconds between attempts
+  
+  // Initial wait before first attempt (shorter since message likely exists)
+  await new Promise((resolve) => setTimeout(resolve, initialWaitMs));
 
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     try {
-      const delayMs = Math.min(initialDelayMs + (attempt * 500), maxDelayMs);
+      // Exponential backoff with cap
+      const delayMs = Math.min(initialDelayMs + (attempt * 1000), maxDelayMs);
       if (attempt > 0) {
         await new Promise((resolve) => setTimeout(resolve, delayMs));
       }
 
-      const messageData = await getMessageFromCircleAPI(txHash, sourceDomain, isTestnet);
+      // Skip initial wait in getMessageFromCircleAPI since we already waited here
+      const messageData = await getMessageFromCircleAPI(txHash, sourceDomain, isTestnet, true);
       
       if (messageData.attestation) {
         return messageData.attestation;
       }
 
       if (attempt < maxAttempts - 1) {
+        // Wait a bit longer for attestation
+        await new Promise((resolve) => setTimeout(resolve, Math.min(delayMs * 1.5, maxDelayMs)));
         continue;
       }
 
-      throw new Error("Attestation not yet available. The transaction may still be processing. Please wait a few minutes and try again.");
+      const totalWaitMinutes = Math.round((initialWaitMs + (maxAttempts * delayMs)) / 1000 / 60);
+      throw new Error(`Attestation not yet available after ~${totalWaitMinutes} minutes. Circle needs 1-5 minutes to process. Please wait a bit more and use the "Complete Mint & Pay" button.`);
     } catch (error: any) {
       if (attempt === maxAttempts - 1) {
         const errorMessage = error?.message || "Failed to fetch attestation";
