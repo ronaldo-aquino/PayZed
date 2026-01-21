@@ -75,9 +75,10 @@ export function InvoiceCard({
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() =>
-                  onCopy(`${window.location.origin}${invoice.payment_link}`, invoice.id)
-                }
+                onClick={() => {
+                  const origin = typeof window !== "undefined" && window.location ? window.location.origin : "";
+                  onCopy(`${origin}${invoice.payment_link}`, invoice.id);
+                }}
                 className="h-9 w-9 p-0 hover:bg-primary/10"
                 title="Copy payment link"
               >

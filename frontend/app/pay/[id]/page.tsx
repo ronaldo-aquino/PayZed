@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { useAccount } from "wagmi";
 import { keccak256, toHex } from "viem";
@@ -23,6 +23,7 @@ export default function PaymentPage() {
   const [arcModalOpen, setArcModalOpen] = useState(false);
   const [cctpModalOpen, setCctpModalOpen] = useState(false);
   const [qrCodeModalOpen, setQrCodeModalOpen] = useState(false);
+  const [paymentUrl, setPaymentUrl] = useState<string>("");
 
   const { invoice, loading, refetch } = useInvoice(invoiceId);
 
@@ -57,10 +58,18 @@ export default function PaymentPage() {
     }, 500);
   });
 
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.location) {
+      setPaymentUrl(window.location.href);
+    }
+  }, []);
+
   const copyPaymentLink = () => {
-    navigator.clipboard.writeText(window.location.href);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    if (typeof window !== "undefined" && window.location) {
+      navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
   };
 
   if (loading) {
@@ -82,8 +91,6 @@ export default function PaymentPage() {
       </div>
     );
   }
-
-  const paymentUrl = typeof window !== "undefined" ? window.location.href : "";
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-muted/20">

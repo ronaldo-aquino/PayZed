@@ -12,6 +12,8 @@ import { useCCTPTransfer, type CCTPTransferStep } from "@/hooks/useCCTPTransfer"
 import { CCTP_SUPPORTED_CHAINS } from "@/lib/cctp-constants";
 import { CheckCircle2, Circle, Loader2, XCircle, ArrowRight } from "lucide-react";
 
+export const dynamic = 'force-dynamic';
+
 const stepConfig: Record<CCTPTransferStep, { label: string; description: (sourceChainName?: string) => string }> = {
   idle: { label: "Ready", description: () => "Enter amount and select source chain" },
   approving: { label: "Approving USDC", description: () => "Approving USDC for cross-chain transfer..." },
